@@ -1,0 +1,30 @@
+YOUR_NAME
+YOUR_CITY, YOUR_STATE | YOUR_PHONE | you@example.com | linkedin.com/in/YOUR_LINKEDIN
+
+NOTE: This committed resume is placeholders only. Put your real resume in
+job-finder/resume.local.txt (git-ignored) or the RESUME_TEXT CI variable.
+Do not commit your name, address, phone, email, school, GPA, or employers.
+
+EDUCATION
+YOUR_SCHOOL
+Graduation: YOUR_GRADUATION_DATE
+YOUR_DEGREE
+
+TECHNICAL SKILLS
+Programming Languages: Python, Java, SQL, JavaScript
+Tools: YOUR_TOOL
+
+WORK EXPERIENCE
+YOUR_ROLE - YOUR_EMPLOYER | YOUR_START_DATE - YOUR_END_DATE
+• Built sample product features using Python and SQL for YOUR_EMPLOYER.
+• YOUR_BULLET describes work that belongs on your own resume.
+
+YOUR_ROLE - YOUR_PREVIOUS_EMPLOYER | YOUR_START_DATE - YOUR_END_DATE
+• Collaborated with a team on a sample operations project for YOUR_PREVIOUS_EMPLOYER.
+
+PROJECTS
+Sample Project - YOUR_CLIENT | YOUR_PROJECT_DATE
+• Extracted sample records into one searchable view for YOUR_CLIENT.
+
+Another Project - YOUR_PROJECT_ORG | YOUR_PROJECT_DATE
+• Built sample back-end features for YOUR_PROJECT_ORG.

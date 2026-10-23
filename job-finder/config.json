@@ -1,0 +1,138 @@
+{
+  "sources": {
+    "greenhouse": {
+      "enabled": true,
+      "boards": [
+        "stripe",
+        "figma",
+        "databricks",
+        "duolingo",
+        "toast",
+        "gitlab",
+        "cloudflare",
+        "samsara"
+      ]
+    },
+    "lever": {
+      "enabled": true,
+      "companies": ["plaid", "matchgroup", "voleon"]
+    },
+    "ashby": {
+      "enabled": true,
+      "boards": ["linear", "vanta", "ramp"]
+    },
+    "remoteok": {
+      "enabled": true,
+      "tags": []
+    },
+    "adzuna": {
+      "enabled": false,
+      "country": "us",
+      "what": "software engineer new grad",
+      "where": "YOUR_CITY",
+      "pages": 2,
+      "resultsPerPage": 50,
+      "maxDaysOld": 30
+    },
+    "usajobs": {
+      "enabled": false,
+      "keyword": "information technology",
+      "locationName": "YOUR_CITY, YOUR_STATE",
+      "remoteOnly": false,
+      "resultsPerPage": 50
+    }
+  },
+  "filters": {
+    "titleInclude": [
+      "software engineer",
+      "software developer",
+      "developer",
+      "engineer i",
+      "engineer 1",
+      "data analyst",
+      "business analyst",
+      "systems analyst",
+      "information technology",
+      "it analyst",
+      "cloud",
+      "devops",
+      "security analyst",
+      "new grad",
+      "graduate",
+      "entry level",
+      "junior",
+      "associate",
+      "intern"
+    ],
+    "titleExclude": [
+      "senior",
+      "sr.",
+      "sr ",
+      "sales",
+      "account executive",
+      "recruiter",
+      "staff",
+      "principal",
+      "lead ",
+      "manager",
+      "director",
+      "vp ",
+      "head of",
+      "architect",
+      "10+ years"
+    ],
+    "locationInclude": [],
+    "locationExclude": [
+      "Ireland",
+      "Dublin",
+      "India",
+      "Bengaluru",
+      "Bangalore",
+      "Singapore",
+      "Australia",
+      "Sydney",
+      "Japan",
+      "Tokyo",
+      "Brazil",
+      "Sao Paulo",
+      "Germany",
+      "Berlin",
+      "Munich",
+      "France",
+      "Paris",
+      "Netherlands",
+      "Amsterdam",
+      "Poland",
+      "Krakow",
+      "Romania",
+      "Bucharest",
+      "United Kingdom",
+      "London",
+      "Canada",
+      "Toronto",
+      "Vancouver",
+      "Mexico",
+      "Spain",
+      "Madrid",
+      "Barcelona",
+      "Israel",
+      "Tel Aviv",
+      "Hong Kong",
+      "China",
+      "Korea",
+      "Philippines",
+      "Nigeria",
+      "South Africa"
+    ],
+    "remoteOnly": false,
+    "minScore": 18,
+    "maxResults": 40,
+    "postedWithinDays": 30
+  },
+  "output": {
+    "generateCoverLetterDrafts": true,
+    "draftsForTopN": 10,
+    "generateTailoredResumes": true,
+    "tailoredResumesForTopN": 10
+  }
+}

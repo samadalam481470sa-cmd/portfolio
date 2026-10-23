@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "market-agent": {
+      "command": "market-agent-mcp",
+      "args": [],
+      "env": {
+        "KALSHI_USE_DEMO": "true"
+      }
+    }
+  }
+}

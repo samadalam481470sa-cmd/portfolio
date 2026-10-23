@@ -1,0 +1,8 @@
+.git
+node_modules
+job-finder/users
+job-finder/output
+job-finder/.cache
+.build
+resume-fit-assistant.zip
+**/.DS_Store

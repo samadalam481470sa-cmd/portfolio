@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wholesale Hub</title>
+<link rel="icon" href="data:,">
+<style>
+  :root { --bg:#fff; --fg:#1b1f24; --muted:#5b6672; --line:#dde2e8; --soft:#f4f6f8; --accent:#1f5fbf; --good:#14703a; --bad:#a32020; --warn:#8a5a00; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#14171b; --fg:#e8ebef; --muted:#9aa5b1; --line:#2b3138; --soft:#1c2025; --accent:#6fa3f0; --good:#5cc489; --bad:#f08080; --warn:#e0b060; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; font:14px/1.45 -apple-system, "Segoe UI", Roboto, sans-serif; background:var(--bg); color:var(--fg); }
+  header { display:flex; flex-wrap:wrap; gap:12px 24px; align-items:center; padding:12px 20px; border-bottom:1px solid var(--line); }
+  header h1 { font-size:18px; margin:0; }
+  .stat { color:var(--muted); }
+  .stat b { color:var(--fg); font-variant-numeric:tabular-nums; }
+  .dot { display:inline-block; width:9px; height:9px; border-radius:50%; background:var(--bad); margin-right:6px; }
+  .dot.on { background:var(--good); }
+  #banner { background:#fff4d6; color:#5a4200; padding:8px 20px; border-bottom:1px solid #ecd9a0; }
+  @media (prefers-color-scheme: dark) { #banner { background:#3a3016; color:#f0d88a; border-color:#5a4a1c; } }
+  nav { display:flex; flex-wrap:wrap; gap:4px; padding:10px 20px 0; border-bottom:1px solid var(--line); }
+  nav button { background:none; border:0; border-bottom:2px solid transparent; padding:8px 12px; font:inherit; color:var(--muted); cursor:pointer; }
+  nav button.active { color:var(--fg); border-color:var(--accent); font-weight:600; }
+  #filters { display:flex; flex-wrap:wrap; gap:10px; padding:12px 20px; align-items:end; }
+  #filters label { display:flex; flex-direction:column; font-size:12px; color:var(--muted); gap:3px; }
+  input, select, textarea, button.btn { font:inherit; padding:6px 8px; border:1px solid var(--line); border-radius:6px; background:var(--bg); color:var(--fg); }
+  button.btn { cursor:pointer; background:var(--soft); }
+  button.btn.primary { background:var(--accent); color:#fff; border-color:var(--accent); }
+  main { padding:0 20px 40px; overflow-x:auto; }
+  table { border-collapse:collapse; width:100%; min-width:760px; }
+  th, td { text-align:left; padding:7px 10px; border-bottom:1px solid var(--line); white-space:nowrap; }
+  th { font-size:12px; color:var(--muted); font-weight:600; position:sticky; top:0; background:var(--bg); }
+  td.num, th.num { text-align:right; font-variant-numeric:tabular-nums; }
+  tr.clickable { cursor:pointer; }
+  tr.clickable:hover { background:var(--soft); }
+  .good { color:var(--good); } .bad { color:var(--bad); } .muted { color:var(--muted); }
+  .tag { font-size:11px; padding:1px 6px; border-radius:10px; background:#fff4d6; color:#5a4200; margin-left:6px; }
+  a { color:var(--accent); }
+  .feed { list-style:none; margin:0; padding:0; }
+  .feed li { padding:7px 0; border-bottom:1px solid var(--line); }
+  .box { background:var(--soft); border-radius:8px; padding:12px 14px; margin:12px 0; }
+  dialog { width:min(920px, 94vw); border:1px solid var(--line); border-radius:10px; padding:0; background:var(--bg); color:var(--fg); }
+  dialog::backdrop { background:rgba(0,0,0,.45); }
+  .mhead { display:flex; justify-content:space-between; align-items:start; padding:14px 18px; border-bottom:1px solid var(--line); }
+  .mbody { padding:4px 18px 18px; max-height:78vh; overflow:auto; }
+  .mbody h3 { margin:18px 0 6px; font-size:14px; }
+  ol.steps { margin:6px 0 0 18px; padding:0; }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  @media (max-width:700px) { .grid2 { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Wholesale Hub</h1>
+  <span class="stat"><span class="dot" id="dot"></span><span id="conn">Connecting</span></span>
+  <span class="stat">Products <b id="s-products">0</b></span>
+  <span class="stat">Offers <b id="s-offers">0</b></span>
+  <span class="stat">Updates per minute <b id="s-permin">0</b></span>
+  <span class="stat">Updates since start <b id="s-total">0</b></span>
+  <span class="stat">Open deals <b id="s-deals">0</b></span>
+  <span class="stat" id="s-clock"></span>
+</header>
+<div id="banner" hidden><b>Sample data.</b> The prices, searches, and brands on this screen are simulated so you can try the tool. They are not real store prices. Load real prices on the Import data tab, then turn the demo off in config.json.</div>
+<nav id="tabs"></nav>
+<div id="filters"></div>
+<main id="view"></main>
+
+<dialog id="modal">
+  <div class="mhead"><div id="m-title"></div><button class="btn" id="m-close">Close</button></div>
+  <div class="mbody" id="m-body"></div>
+</dialog>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const money = (n) => (n == null ? '' : '$' + Number(n).toFixed(Math.abs(n) < 1 ? 4 : 2));
+const money2 = (n) => (n == null ? '' : (n < 0 ? '-$' : '$') + Math.abs(Number(n)).toFixed(2));
+const pct = (n) => (n == null ? '' : Number(n).toFixed(1) + '%');
+const num = (n) => Number(n ?? 0).toLocaleString();
+const ago = (ts) => { const s = Math.max(0, Math.round(Date.now()/1000 - ts)); return s < 60 ? s + 's ago' : s < 3600 ? Math.round(s/60) + ' min ago' : Math.round(s/3600) + ' h ago'; };
+
+const TABS = [
+  ['deals', 'Best deals'], ['trending', 'Trending now'], ['popular', 'Most popular'],
+  ['searched', 'Most searched'], ['cheapest', 'Cheapest to buy'], ['feed', 'Live feed'],
+  ['sources', 'Sources and fees'], ['import', 'Import data'],
+];
+const state = { tab: 'deals', sources: {}, cats: [], feed: [], f: { q: '', category: '', min_profit: 0.01, min_margin: 0, sort: 'profit', kind: 'wholesale' } };
+let busy = false;
+
+async function api(path, opts) {
+  const r = await fetch(path, opts);
+  if (!r.ok) throw new Error((await r.text()) || r.status);
+  return r.json();
+}
+
+function drawTabs() {
+  $('#tabs').innerHTML = TABS.map(([k, l]) => `<button data-tab="${k}" class="${k === state.tab ? 'active' : ''}">${l}</button>`).join('');
+}
+$('#tabs').addEventListener('click', (e) => {
+  const b = e.target.closest('button[data-tab]');
+  if (!b) return;
+  state.tab = b.dataset.tab;
+  drawTabs(); drawFilters(); load();
+});
+
+function drawFilters() {
+  const f = state.f, t = state.tab;
+  if (t !== 'deals' && t !== 'cheapest') { $('#filters').innerHTML = ''; return; }
+  const cats = ['<option value="">All categories</option>'].concat(state.cats.map((c) => `<option ${c === f.category ? 'selected' : ''}>${esc(c)}</option>`)).join('');
+  let h = `<label>Search<input id="f-q" value="${esc(f.q)}" placeholder="Product or brand"></label>
+           <label>Category<select id="f-cat">${cats}</select></label>`;
+  if (t === 'deals') {
+    h += `<label>Min profit ($)<input id="f-mp" type="number" step="0.5" min="0" value="${f.min_profit}" style="width:90px"></label>
+          <label>Min margin (%)<input id="f-mm" type="number" step="1" min="0" value="${f.min_margin}" style="width:90px"></label>
+          <label>Sort by<select id="f-sort">${[['profit','Profit'],['margin','Margin'],['roi','Return on cost'],['trend','Trend']].map(([v,l]) => `<option value="${v}" ${v === f.sort ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
+          <a class="btn" style="padding:6px 10px" id="f-export" href="#">Export CSV</a>`;
+  } else {
+    h += `<label>Buy from<select id="f-kind">${[['wholesale','Wholesale stores'],['marketplace','Marketplaces'],['all','All stores']].map(([v,l]) => `<option value="${v}" ${v === f.kind ? 'selected' : ''}>${l}</option>`).join('')}</select></label>`;
+  }
+  $('#filters').innerHTML = h;
+}
+$('#filters').addEventListener('input', (e) => {
+  const f = state.f, id = e.target.id;
+  if (id === 'f-q') f.q = e.target.value;
+  if (id === 'f-cat') f.category = e.target.value;
+  if (id === 'f-mp') f.min_profit = Number(e.target.value || 0);
+  if (id === 'f-mm') f.min_margin = Number(e.target.value || 0);
+  if (id === 'f-sort') f.sort = e.target.value;
+  if (id === 'f-kind') f.kind = e.target.value;
+  clearTimeout(state.t); state.t = setTimeout(load, 250);
+});
+$('#filters').addEventListener('click', (e) => {
+  if (e.target.id !== 'f-export') return;
+  e.preventDefault();
+  const f = state.f;
+  location.href = '/api/export/opportunities.csv?' + new URLSearchParams({ q: f.q, category: f.category, min_profit: f.min_profit, min_margin: f.min_margin, sort: f.sort });
+});
+
+function nameCell(r) {
+  return `<a href="#" data-pid="${r.pid ?? r.product_id ?? r.id}">${esc((r.brand ? r.brand + ' ' : '') + r.name)}</a>${r.is_sample ? '<span class="tag">SAMPLE</span>' : ''}`;
+}
+function link(url, kind, label) {
+  if (!url) return '';
+  return `<a href="${esc(url)}" target="_blank" rel="noopener">${kind === 'search' ? 'Search ' + esc(label) : 'Open ' + esc(label)}</a>`;
+}
+const sname = (k) => (state.sources[k] ? state.sources[k].name : k);
+const table = (head, body) => `<table><thead><tr>${head.map((h) => `<th class="${h[1] || ''}">${h[0]}</th>`).join('')}</tr></thead><tbody>${body || '<tr><td colspan="' + head.length + '" class="muted">Nothing to show yet.</td></tr>'}</tbody></table>`;
+
+const VIEWS = {
+  async deals() {
+    const f = state.f;
+    const rows = await api('/api/opportunities?' + new URLSearchParams({ q: f.q, category: f.category, min_profit: f.min_profit, min_margin: f.min_margin, sort: f.sort, limit: 100 }));
+    return `<p class="muted">Each row is one way to make money: buy the item at the first store, sell the same item at the second. Profit is per sale, after the marketplace fee and shipping estimate. Click a product for links, price history, and how to buy.</p>` +
+      table([['Product'], ['Buy at'], ['Buy unit price', 'num'], ['Sell on'], ['Sell price', 'num'], ['Profit per sale', 'num'], ['Margin', 'num'], ['Return on cost', 'num'], ['Links']],
+        rows.map((r) => `<tr class="clickable"><td>${nameCell(r)}</td><td>${esc(sname(r.buy_source))}</td><td class="num">${money(r.buy_unit)}</td><td>${esc(sname(r.sell_source))}</td><td class="num">${money2(r.sell_price)} <span class="muted">(${num(r.sell_pack_qty)} pk)</span></td><td class="num good">${money2(r.profit)}</td><td class="num">${pct(r.margin_pct)}</td><td class="num">${pct(r.roi_pct)}</td><td>${link(r.buy_url, r.buy_url_kind, 'buy')} &nbsp; ${link(r.sell_url, r.sell_url_kind, 'sell')}</td></tr>`).join(''));
+  },
+  async trending() {
+    const rows = await api('/api/trending?limit=100');
+    return `<p class="muted">Products whose searches in the last 15 minutes are rising fastest against the 45 minutes before.</p>` +
+      table([['Product'], ['Category'], ['Searches, last 15 min', 'num'], ['Searches, 45 min before', 'num'], ['Trend score', 'num'], ['Best profit', 'num']],
+        rows.map((r) => `<tr class="clickable"><td>${nameCell(r)}</td><td>${esc(r.category)}</td><td class="num">${num(r.searches_15m)}</td><td class="num">${num(r.searches_prev_45m)}</td><td class="num ${r.trend_score > 0 ? 'good' : ''}">${Number(r.trend_score).toFixed(2)}</td><td class="num">${r.best_profit ? money2(r.best_profit) : '<span class="muted">none</span>'}</td></tr>`).join(''));
+  },
+  async popular() {
+    const rows = await api('/api/popular?limit=100');
+    return `<p class="muted">Popularity is 70% searches over 24 hours and 30% best marketplace sales rank.</p>` +
+      table([['Product'], ['Category'], ['Popularity', 'num'], ['Searches, 24 h', 'num'], ['Best sales rank', 'num'], ['Best profit', 'num']],
+        rows.map((r) => `<tr class="clickable"><td>${nameCell(r)}</td><td>${esc(r.category)}</td><td class="num">${Number(r.popularity_score).toFixed(3)}</td><td class="num">${num(r.searches_24h)}</td><td class="num">${r.best_rank ? num(r.best_rank) : ''}</td><td class="num">${r.best_profit ? money2(r.best_profit) : '<span class="muted">none</span>'}</td></tr>`).join(''));
+  },
+  async searched() {
+    const rows = await api('/api/searched?limit=100');
+    return table([['Product'], ['Category'], ['Searches, 24 h', 'num'], ['Searches, last 15 min', 'num'], ['Best profit', 'num']],
+      rows.map((r) => `<tr class="clickable"><td>${nameCell(r)}</td><td>${esc(r.category)}</td><td class="num">${num(r.searches_24h)}</td><td class="num">${num(r.searches_15m)}</td><td class="num">${r.best_profit ? money2(r.best_profit) : '<span class="muted">none</span>'}</td></tr>`).join(''));
+  },
+  async cheapest() {
+    const f = state.f;
+    const rows = await api('/api/cheapest?' + new URLSearchParams({ q: f.q, category: f.category, kind: f.kind, limit: 100 }));
+    return `<p class="muted">The lowest price per unit for each product, and how far below the average of all stores that price sits.</p>` +
+      table([['Product'], ['Cheapest at'], ['Unit price', 'num'], ['Pack price', 'num'], ['Pack size', 'num'], ['Below average', 'num'], ['Stores compared', 'num'], ['Link']],
+        rows.map((r) => `<tr class="clickable"><td>${nameCell(r)}</td><td>${esc(sname(r.source))}</td><td class="num">${money(r.unit_price)}</td><td class="num">${money2(r.price)}</td><td class="num">${num(r.pack_qty)}</td><td class="num good">${pct(r.below_avg_pct)}</td><td class="num">${r.stores}</td><td>${link(r.url, r.url_kind, 'it')}</td></tr>`).join(''));
+  },
+  async feed() {
+    if (!state.feed.length) return '<p class="muted">Waiting for live updates. Price moves and new deals appear here as they happen.</p>';
+    return '<ul class="feed">' + state.feed.map((e) => {
+      const t = new Date(e.ts * 1000).toLocaleTimeString();
+      if (e.type === 'deal') return `<li><b class="good">New deal</b> <span class="muted">${t}</span> ${esc(e.name)}: buy at ${esc(e.buy_name)}, sell on ${esc(e.sell_name)}. Profit ${money2(e.profit)} per sale (${e.margin_pct}% margin).</li>`;
+      return `<li><span class="muted">${t}</span> ${esc(e.name)} at ${esc(e.source_name)}: ${money(e.old)} to ${money(e.new)} <span class="${e.pct < 0 ? 'good' : 'bad'}">(${e.pct > 0 ? '+' : ''}${e.pct}%)</span></li>`;
+    }).join('') + '</ul>';
+  },
+  async sources() {
+    const d = await api('/api/sources');
+    const rows = d.sources.map((s) => `<tr><td>${esc(s.name)}</td><td>${esc(s.kind)}</td><td>${esc(s.membership)}</td>
+      <td class="num"><input data-src="${esc(s.key)}" data-field="fee_pct" type="number" step="0.5" min="0" value="${s.fee_pct}" style="width:80px"></td>
+      <td class="num"><input data-src="${esc(s.key)}" data-field="ship_per_sale" type="number" step="0.25" min="0" value="${s.ship_per_sale}" style="width:80px"></td>
+      <td><input data-src="${esc(s.key)}" data-field="enabled" type="checkbox" ${s.enabled ? 'checked' : ''}></td></tr>`).join('');
+    const prov = d.providers.map((p) => `<tr><td>${esc(p.provider)}</td><td>${p.last_ok ? ago(p.last_ok) : 'never'}</td><td class="num">${num(p.rows_total)}</td><td class="${p.last_error ? 'bad' : 'muted'}">${esc(p.last_error || p.note)}</td></tr>`).join('');
+    return `<h3>Stores</h3><p class="muted">Fee % and shipping per sale are estimates. Replace them with your real numbers. Profit numbers update right away.</p>` +
+      table([['Store'], ['Kind'], ['Membership or account'], ['Fee %', 'num'], ['Shipping per sale ($)', 'num'], ['On']], rows) +
+      `<h3>Data providers</h3>` + table([['Provider'], ['Last data'], ['Rows saved', 'num'], ['Status']], prov) +
+      `<div class="box"><button class="btn" id="refresh-now">Run the daily refresh now</button> <span class="muted" id="refresh-msg"></span></div>`;
+  },
+  async import() {
+    const d = await api('/api/sources');
+    const log = d.imports.map((i) => `<tr><td>${ago(i.ts)}</td><td>${esc(i.filename)}</td><td class="num">${i.rows_ok}</td><td class="num">${i.rows_bad}</td><td class="muted">${esc(i.message)}</td></tr>`).join('');
+    return `<div class="box"><b>Load real prices.</b> Upload a CSV with one row per product per store. Rows with the same UPC or product_key are matched as the same product across stores. You can also drop CSV files into the imports folder and the hub picks them up within seconds.
+      <p><a href="/api/import/template.csv">Download the CSV template</a></p>
+      <input type="file" id="csv-file" accept=".csv,text/csv"> <button class="btn primary" id="csv-go">Upload</button>
+      <p id="csv-msg" class="muted"></p></div>
+      <h3>Recent imports</h3>` + table([['When'], ['File'], ['Rows saved', 'num'], ['Rows skipped', 'num'], ['Notes']], log);
+  },
+};
+
+async function load() {
+  if (busy) return;
+  busy = true;
+  try { $('#view').innerHTML = await VIEWS[state.tab](); } catch (e) { $('#view').innerHTML = '<p class="bad">Could not load: ' + esc(e.message) + '</p>'; }
+  busy = false;
+}
+
+$('#view').addEventListener('click', async (e) => {
+  const a = e.target.closest('a[data-pid]');
+  if (a) { e.preventDefault(); return openProduct(a.dataset.pid); }
+  const tr = e.target.closest('tr.clickable');
+  if (tr && !e.target.closest('a')) { const l = tr.querySelector('a[data-pid]'); if (l) openProduct(l.dataset.pid); }
+  if (e.target.id === 'refresh-now') {
+    const r = await api('/api/admin/refresh', { method: 'POST' });
+    $('#refresh-msg').textContent = r.message;
+  }
+  if (e.target.id === 'csv-go') {
+    const file = $('#csv-file').files[0];
+    if (!file) { $('#csv-msg').textContent = 'Choose a file first.'; return; }
+    try {
+      const r = await api('/api/import/csv', { method: 'POST', body: await file.text() });
+      $('#csv-msg').innerHTML = `Saved ${r.imported} rows. Skipped ${r.bad_rows}.` + (r.errors.length ? '<br>' + r.errors.map(esc).join('<br>') : '');
+      refreshStats();
+    } catch (err) { $('#csv-msg').textContent = 'Upload failed: ' + err.message; }
+  }
+});
+$('#view').addEventListener('change', async (e) => {
+  const el = e.target;
+  if (!el.dataset.src) return;
+  const body = {};
+  body[el.dataset.field] = el.type === 'checkbox' ? el.checked : Number(el.value);
+  await api('/api/sources/' + el.dataset.src, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+});
+
+// ---- product window
+function spark(points) {
+  if (points.length < 2) return '<p class="muted">Not enough history yet.</p>';
+  const w = 640, h = 90, pad = 4;
+  const xs = points.map((p) => p[0]), ys = points.map((p) => p[1]);
+  const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
+  const sx = (t) => pad + ((t - x0) / (x1 - x0 || 1)) * (w - 2 * pad);
+  const sy = (v) => h - pad - ((v - y0) / (y1 - y0 || 1)) * (h - 2 * pad);
+  return `<svg viewBox="0 0 ${w} ${h}" width="100%" height="${h}" role="img" aria-label="Price history"><polyline fill="none" stroke="currentColor" stroke-width="1.5" points="${points.map((p) => sx(p[0]).toFixed(1) + ',' + sy(p[1]).toFixed(1)).join(' ')}"/></svg><div class="muted">Low ${money(y0)}, high ${money(y1)}, ${points.length} points</div>`;
+}
+
+async function openProduct(pid) {
+  const d = await api('/api/products/' + pid);
+  const p = d.product, src = d.sources;
+  $('#m-title').innerHTML = `<b style="font-size:16px">${esc((p.brand ? p.brand + ' ' : '') + p.name)}</b>${p.is_sample ? '<span class="tag">SAMPLE</span>' : ''}<div class="muted">${esc(p.category)}</div>`;
+  const best = d.opportunities[0];
+  const offerRows = d.offers.map((o) => `<tr><td>${esc(o.source_name)}</td><td>${esc(o.kind)}</td><td class="num">${num(o.pack_qty)}</td><td class="num">${money2(o.price)}</td><td class="num">${money(o.unit_price)}</td><td>${o.in_stock ? 'In stock' : '<span class="bad">Out</span>'}</td><td>${ago(o.updated_at)}</td><td>${link(o.url, o.url_kind, '')}</td></tr>`).join('');
+  const oppRows = d.opportunities.map((o) => `<tr><td>${esc(sname(o.buy_source))}</td><td>${esc(sname(o.sell_source))}</td><td class="num">${money2(o.cost)}</td><td class="num">${money2(o.sell_price)}</td><td class="num">${money2(o.fees)}</td><td class="num">${money2(o.ship)}</td><td class="num good">${money2(o.profit)}</td><td class="num">${pct(o.margin_pct)}</td></tr>`).join('');
+  const steps = (k) => (src[k] ? `<h3>How to ${src[k].kind === 'wholesale' ? 'buy' : 'sell'} at ${esc(src[k].name)}</h3><div class="muted">${esc(src[k].membership)}</div><ol class="steps">${src[k].how_to_buy.map((s) => `<li>${esc(s)}</li>`).join('')}</ol>` : '');
+  const first = d.offers[0];
+  $('#m-body').innerHTML = `
+    <h3>Offers right now</h3>${table([['Store'], ['Kind'], ['Pack size', 'num'], ['Pack price', 'num'], ['Unit price', 'num'], ['Stock'], ['Updated'], ['Link']], offerRows)}
+    <h3>Price history</h3>
+    <label class="muted">Store <select id="h-src">${d.offers.map((o) => `<option value="${esc(o.source)}">${esc(o.source_name)}</option>`).join('')}</select></label>
+    <div id="h-chart"></div>
+    <h3>Ways to make money on this product</h3>
+    ${oppRows ? table([['Buy at'], ['Sell on'], ['Cost per sale', 'num'], ['Sell price', 'num'], ['Fees', 'num'], ['Shipping', 'num'], ['Profit', 'num'], ['Margin', 'num']], oppRows) : '<p class="muted">No profitable pair at current prices and fees.</p>'}
+    ${best ? `<div class="box">Profit calculator for the best pair (buy at ${esc(sname(best.buy_source))}, sell on ${esc(sname(best.sell_source))}). Sales planned: <input id="calc-n" type="number" min="1" value="10" style="width:80px">
+      <div id="calc-out" style="margin-top:6px"></div><div class="muted">One ${num(best.buy_pack_qty)}-unit pack at the buy store fills about ${best.sales_per_pack.toFixed(2)} sale(s).</div></div>` : ''}
+    <div class="grid2"><div>${best ? steps(best.buy_source) : ''}</div><div>${best ? steps(best.sell_source) : ''}</div></div>
+    <p class="muted">Prices change and stores change their rules. Check the live store page before you buy.</p>`;
+  const drawChart = async () => {
+    const s = $('#h-src').value;
+    $('#h-chart').innerHTML = spark(await api(`/api/products/${pid}/history?source=${encodeURIComponent(s)}&hours=24`));
+  };
+  if (first) { $('#h-src').addEventListener('change', drawChart); drawChart(); }
+  const calc = () => {
+    if (!best) return;
+    const n = Math.max(1, Number($('#calc-n').value || 1));
+    $('#calc-out').innerHTML = `Money to spend: <b>${money2(best.cost * n)}</b>. Expected profit: <b class="good">${money2(best.profit * n)}</b>.`;
+  };
+  if (best) { $('#calc-n').addEventListener('input', calc); calc(); }
+  $('#modal').showModal();
+}
+$('#m-close').addEventListener('click', () => $('#modal').close());
+
+// ---- header stats and live stream
+async function refreshStats() {
+  try {
+    const o = await api('/api/overview');
+    $('#s-products').textContent = num(o.products);
+    $('#s-offers').textContent = num(o.offers);
+    $('#s-deals').textContent = num(o.strong_deals);
+    $('#banner').hidden = !o.sample_mode;
+  } catch (e) { /* ignore */ }
+}
+
+function connect() {
+  const es = new EventSource('/api/stream');
+  es.onopen = () => { $('#dot').classList.add('on'); $('#conn').textContent = 'Live'; };
+  es.onerror = () => { $('#dot').classList.remove('on'); $('#conn').textContent = 'Reconnecting'; };
+  es.onmessage = (m) => {
+    const e = JSON.parse(m.data);
+    if (e.type === 'stats') {
+      $('#s-permin').textContent = num(e.per_min);
+      $('#s-total').textContent = num(e.total);
+      $('#s-clock').textContent = new Date(e.ts * 1000).toLocaleTimeString();
+    } else if (e.type === 'events') {
+      state.feed = (e.alerts || []).concat(e.events || []).concat(state.feed).slice(0, 80);
+      if (state.tab === 'feed' && !$('#modal').open) VIEWS.feed().then((h) => { $('#view').innerHTML = h; });
+    }
+  };
+}
+
+async function init() {
+  state.sources = Object.fromEntries((await api('/api/sources')).sources.map((s) => [s.key, s]));
+  state.cats = await api('/api/categories').catch(() => []);
+  drawTabs(); drawFilters(); await load(); refreshStats(); connect();
+  setInterval(async () => {
+    if (document.hidden || $('#modal').open) return;
+    if (['deals', 'trending', 'popular', 'searched', 'cheapest'].includes(state.tab) && !document.activeElement.matches('input,select')) await load();
+  }, 2500);
+  setInterval(refreshStats, 5000);
+  const refreshCats = async () => {
+    const c = await api('/api/categories').catch(() => state.cats);
+    if (c.length !== state.cats.length) {
+      state.cats = c;
+      if ((state.tab === 'deals' || state.tab === 'cheapest') && !document.activeElement.matches('input,select')) drawFilters();
+    }
+  };
+  setTimeout(refreshCats, 3000);
+  setInterval(refreshCats, 30000);
+}
+init();
+</script>
+</body>
+</html>

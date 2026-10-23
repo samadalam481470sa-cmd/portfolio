@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Resume-Fit Autofill Assistant</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <header>
+    <h1>Resume-Fit Autofill Assistant</h1>
+    <p class="tagline">Fills forms with your real info. Never invents facts. Never auto-submits.</p>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="resume">1. Resume</button>
+    <button class="tab-btn" data-tab="qa">2. Q&amp;A</button>
+    <button class="tab-btn" data-tab="fill">3. Fill &amp; Score</button>
+  </nav>
+
+  <section id="tab-resume" class="tab-panel active">
+    <div class="field-group">
+      <label for="resumeFile">Upload resume (.txt)</label>
+      <input type="file" id="resumeFile" accept=".txt,.md,text/plain" />
+      <p class="hint">For PDF/Word resumes: open the file, copy the text, and paste it below instead.</p>
+    </div>
+
+    <div class="field-group">
+      <label for="resumePaste">...or paste your resume text</label>
+      <textarea id="resumePaste" rows="6" placeholder="Paste your resume text here"></textarea>
+      <button id="parseBtn" class="btn secondary">Parse Resume</button>
+    </div>
+
+    <hr />
+
+    <p class="hint">Review and correct anything below — this is exactly what will be used to fill forms. Leave a field blank if you don't want it auto-filled.</p>
+
+    <div class="field-group">
+      <label for="fName">Full name</label>
+      <input type="text" id="fName" />
+    </div>
+    <div class="field-row">
+      <div class="field-group">
+        <label for="fFirstName">First name</label>
+        <input type="text" id="fFirstName" />
+      </div>
+      <div class="field-group">
+        <label for="fLastName">Last name</label>
+        <input type="text" id="fLastName" />
+      </div>
+    </div>
+    <div class="field-group">
+      <label for="fEmail">Email</label>
+      <input type="email" id="fEmail" />
+    </div>
+    <div class="field-group">
+      <label for="fPhone">Phone</label>
+      <input type="text" id="fPhone" />
+    </div>
+    <div class="field-group">
+      <label for="fLocation">Location (city, state)</label>
+      <input type="text" id="fLocation" />
+    </div>
+    <div class="field-group">
+      <label for="fLinkedin">LinkedIn URL</label>
+      <input type="text" id="fLinkedin" />
+    </div>
+    <div class="field-group">
+      <label for="fWebsite">Website / GitHub / Portfolio</label>
+      <input type="text" id="fWebsite" />
+    </div>
+    <div class="field-group">
+      <label for="fSkills">Skills (comma-separated)</label>
+      <textarea id="fSkills" rows="2"></textarea>
+    </div>
+    <div class="field-group">
+      <label for="fSummary">Professional summary (optional, in your own words)</label>
+      <textarea id="fSummary" rows="3" placeholder="We will only use this if you write it — nothing is generated for you."></textarea>
+    </div>
+
+    <button id="saveBtn" class="btn primary">Save Resume Profile</button>
+    <p id="saveStatus" class="status"></p>
+  </section>
+
+  <section id="tab-qa" class="tab-panel">
+    <p class="hint">Tell us your own answers to questions that come up often. We'll reuse your exact wording whenever a matching question appears on a page — never guessed, never invented.</p>
+
+    <div id="qaList"></div>
+    <button id="addQaBtn" class="btn secondary">+ Add a question</button>
+
+    <p class="hint" style="margin-top:12px;">Quick add common questions:</p>
+    <div id="qaQuickAdd" class="chip-list"></div>
+
+    <hr />
+    <p class="hint">For open-ended prompts you haven't answered above (like "Why do you want to work here?"), we'll draft a short suggestion from your real resume content — always shown for you to review and personalize, never submitted automatically.</p>
+
+    <button id="saveQaBtn" class="btn primary">Save Q&amp;A</button>
+    <p id="qaSaveStatus" class="status"></p>
+  </section>
+
+  <section id="tab-fill" class="tab-panel">
+    <p class="hint">Open a job application or job posting tab, then click below. Matched fields are filled with your real info or saved Q&amp;A answers; open-ended prompts get a draft to review; anything uncertain is flagged for you to complete yourself.</p>
+    <button id="fillBtn" class="btn primary">Analyze &amp; Fill This Page</button>
+    <div id="fillResult" class="fill-result"></div>
+
+    <hr />
+    <div class="field-group toggle-row">
+      <label for="widgetToggle" class="toggle-label">
+        <input type="checkbox" id="widgetToggle" />
+        Show floating helper bubble on web pages
+      </label>
+      <p class="hint">A small draggable "RF" button in the corner of every page with quick actions (fill name/email/phone, full autofill). Reload open tabs after changing this.</p>
+    </div>
+  </section>
+
+  <script src="lib/resumeParser.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
