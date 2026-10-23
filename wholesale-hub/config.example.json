@@ -1,0 +1,11 @@
+{
+  "port": 8800,
+  "daily_refresh_hour": 3,
+  "alert_min_profit": 2.0,
+  "alert_min_margin_pct": 15.0,
+  "providers": {
+    "demo": { "enabled": true, "product_count": 120 },
+    "csv_import": { "enabled": true },
+    "ebay": { "enabled": false, "client_id": "", "client_secret": "" }
+  }
+}

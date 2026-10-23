@@ -1,0 +1,76 @@
+# Stock news sentiment analyzer configuration.
+# Paths are relative to this file.
+
+db_path: data/sentiment.db
+raw_cache_dir: data/raw
+
+http:
+  user_agent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"
+  # SEC EDGAR requires a descriptive User-Agent with a contact email. Set this to enable the edgar source.
+  sec_user_agent: ""          # e.g. "my-research-project you@example.com"
+  timeout: 15
+  max_retries: 3
+  min_interval_seconds: 2.0   # polite per-domain delay between requests
+  respect_robots: true
+
+sentiment:
+  model: finbert              # finbert | vader  (finbert falls back to vader if unavailable)
+  baseline_model: vader       # also scored for comparison; set to null to skip
+  batch_size: 16
+
+sources:
+  # google_news and yahoo are disabled: their robots.txt disallows automated access to these feeds.
+  google_news:  {enabled: false, weight: 0.8}
+  nasdaq:       {enabled: true,  weight: 1.0}
+  finviz:       {enabled: true,  weight: 1.0}
+  yahoo:        {enabled: false, weight: 1.0}
+  marketwatch:  {enabled: true,  weight: 0.9}
+  edgar:        {enabled: true,  weight: 1.2}   # skipped unless http.sec_user_agent is set
+
+signal:
+  lookback_hours: 72          # news older than this is ignored
+  half_life_hours: 24         # time-decay half-life
+  baseline_days: 30           # window for a ticker's "normal" sentiment and news volume
+  confidence_k: 3.0           # total weight at which confidence reaches ~63%
+  near_dup_threshold: 88      # rapidfuzz token_set_ratio above which a headline counts as a rehash
+  rehash_novelty: 0.3         # weight multiplier for rehashed headlines
+
+alerts:
+  enabled: false
+  webhook_url: ""
+  kind: discord               # discord | slack
+  min_abs_delta: 0.35
+  min_volume_z: 2.0
+  min_confidence: 0.5
+
+schedule:
+  fetch_minutes: 15
+  signals_minutes: 60
+  daily_eval_time: "17:30"    # America/New_York
+
+# Tickers that also appear as ordinary words (quoted: YAML reads bare ON as true). They are only matched as $TICKER, (TICKER) or EXCHANGE:TICKER.
+ambiguous_tickers: ["A", "ALL", "ARE", "BE", "CAN", "CAR", "DAY", "EAT", "F", "FOR", "FUN", "GO", "HAS", "IT", "K", "KEY", "LOW", "MAN", "NOW", "O", "ON", "ONE", "OUT", "PEAK", "PLAY", "REAL", "RUN", "SEE", "SO", "T", "TWO", "U", "UP", "V", "WELL", "WIN", "X"]
+
+universe:
+  - {ticker: AAPL, name: "Apple Inc.", aliases: ["Apple", "iPhone"], context_required: true}
+  - {ticker: MSFT, name: "Microsoft Corporation", aliases: ["Microsoft"]}
+  - {ticker: NVDA, name: "NVIDIA Corporation", aliases: ["Nvidia", "NVIDIA"]}
+  - {ticker: AMZN, name: "Amazon.com, Inc.", aliases: ["Amazon", "AWS"], context_required: true}
+  - {ticker: GOOGL, name: "Alphabet Inc.", aliases: ["Alphabet", "Google", "GOOG"]}
+  - {ticker: META, name: "Meta Platforms, Inc.", aliases: ["Meta Platforms", "Facebook", "Instagram"]}
+  - {ticker: TSLA, name: "Tesla, Inc.", aliases: ["Tesla"]}
+  - {ticker: AVGO, name: "Broadcom Inc.", aliases: ["Broadcom"]}
+  - {ticker: JPM, name: "JPMorgan Chase & Co.", aliases: ["JPMorgan", "JP Morgan", "Chase"]}
+  - {ticker: V, name: "Visa Inc.", aliases: ["Visa"], context_required: true}
+  - {ticker: WMT, name: "Walmart Inc.", aliases: ["Walmart"]}
+  - {ticker: XOM, name: "Exxon Mobil Corporation", aliases: ["Exxon", "ExxonMobil"]}
+  - {ticker: UNH, name: "UnitedHealth Group Incorporated", aliases: ["UnitedHealth"]}
+  - {ticker: JNJ, name: "Johnson & Johnson", aliases: ["J&J"]}
+  - {ticker: NFLX, name: "Netflix, Inc.", aliases: ["Netflix"]}
+  - {ticker: AMD, name: "Advanced Micro Devices, Inc.", aliases: ["AMD"]}
+  - {ticker: INTC, name: "Intel Corporation", aliases: ["Intel"]}
+  - {ticker: BA, name: "The Boeing Company", aliases: ["Boeing"]}
+  - {ticker: DIS, name: "The Walt Disney Company", aliases: ["Disney"]}
+  - {ticker: KO, name: "The Coca-Cola Company", aliases: ["Coca-Cola", "Coke"], context_required: true}
+
+benchmark: SPY

@@ -1,0 +1,10 @@
+.env
+*.pem
+*.key
+__pycache__/
+*.pyc
+.venv/
+dist/
+*.egg-info/
+paper_portfolio.json
+growth_portfolio.json

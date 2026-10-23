@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:nasdaq="http://nasdaq.com/reference/feeds/1.0" version="2.0">
+ <channel>
+  <title>AAPL Feed</title>
+  <item>
+   <title>The AI Rally, Mega-Cap Dominance &amp; What Comes Next</title>
+   <link>https://www.nasdaq.com/articles/ai-rally-mega-cap-dominance-what-comes-next?utm_source=rss</link>
+   <description>
+        With concentration risks rising, is it time to look beyond the market's biggest names?
+    </description>
+   <pubDate>Mon, 12 Oct 2026 19:39:00 +0000</pubDate>
+   <guid isPermaLink="true">https://www.nasdaq.com/articles/ai-rally?time=1791833940</guid>
+   <dc:creator>Zacks</dc:creator>
+   <nasdaq:tickers>AAPL,MSFT,MU,NVDA,QQQ</nasdaq:tickers>
+  </item>
+  <item>
+   <title>Apple (AAPL) Beats Q4 Estimates as iPhone Sales Surge</title>
+   <link>https://www.nasdaq.com/articles/apple-beats</link>
+   <description>&lt;p&gt;Apple reported record revenue. Shares rose 4% after hours.&lt;/p&gt;</description>
+   <pubDate>Mon, 12 Oct 2026 21:05:00 +0000</pubDate>
+   <dc:creator>Zacks</dc:creator>
+   <nasdaq:tickers>AAPL</nasdaq:tickers>
+  </item>
+ </channel>
+</rss>

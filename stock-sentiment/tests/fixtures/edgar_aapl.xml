@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+<title>APPLE INC  (0000320193)</title>
+<entry>
+  <category label="form type" scheme="https://www.sec.gov/" term="8-K"/>
+  <content type="text/xml">
+    <accession-number>0000320193-26-000071</accession-number>
+    <filing-date>2026-07-30</filing-date>
+    <items-desc>items 2.02 and 9.01</items-desc>
+  </content>
+  <link href="https://www.sec.gov/Archives/edgar/data/320193/000032019326000071/0000320193-26-000071-index.htm" rel="alternate" type="text/html"/>
+  <title>8-K  - Current report</title>
+  <updated>2026-07-30T16:30:28-04:00</updated>
+</entry>
+</feed>

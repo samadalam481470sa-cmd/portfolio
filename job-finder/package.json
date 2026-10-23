@@ -1,0 +1,16 @@
+{
+  "name": "job-finder",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Scheduled job discovery and resume-matching pipeline. Finds and ranks postings from public job APIs; you review and apply yourself.",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "discover": "node src/index.js",
+    "discover:all": "node src/multiuser.js",
+    "test": "node --test test/*.test.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "manifest_version": 3,
+  "name": "Resume-Fit Autofill Assistant",
+  "version": "1.0.0",
+  "description": "Stores your real resume, autofills job application forms with your own accurate info, and scores how well a posting matches your resume. Nothing is invented and nothing is submitted automatically — you stay in control.",
+  "permissions": ["storage", "activeTab", "scripting", "contextMenus"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Resume-Fit Autofill Assistant"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["lib/matcher.js", "lib/tailor.js", "lib/autofillEngine.js", "widget.js"],
+      "run_at": "document_idle",
+      "all_frames": false
+    }
+  ]
+}

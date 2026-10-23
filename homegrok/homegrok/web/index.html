@@ -1,0 +1,930 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HomeGrok</title>
+<style>
+  :root {
+    --bg: #161616; --panel: #1e1e1e; --raised: #474747; --line: #3a3a3a;
+    --text: #ececec; --muted: #a8a8a8;
+    --green: #234e40; --green-text: #a8e0c4; --green-line: #3f8a6c;
+    --purple: #3b3283; --purple-text: #d4ceff; --purple-line: #6b5fd0;
+    --amber: #e0b45a; --red: #e07a6a;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif; }
+  a { color: var(--green-text); }
+  .app { display: grid; grid-template-columns: 340px 1fr; height: 100vh; }
+  aside { border-right: 1px solid var(--line); padding: 20px; overflow-y: auto; background: var(--panel); }
+  h1 { font-size: 20px; margin: 0 0 4px; display: flex; align-items: center; gap: 8px; }
+  .sub { color: var(--muted); font-size: 13px; margin-bottom: 18px; }
+  .card { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; margin-bottom: 12px; }
+  .card h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted);
+             margin: 0 0 8px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .kv { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; padding: 2px 0; }
+  .kv span:last-child { font-variant-numeric: tabular-nums; text-align: right; }
+  .card.brain { background: var(--purple); border-color: var(--purple-line); color: var(--purple-text); }
+  .card.auto { background: var(--green); border-color: var(--green-line); color: var(--green-text); }
+  .card.brain h2, .card.auto h2 { color: inherit; opacity: .85; }
+  .pill { font-size: 11px; text-transform: none; letter-spacing: 0; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); display: inline-block; flex: none; }
+  .dot.on { background: #6fe0a8; animation: pulse 1.6s ease-in-out infinite; }
+  .dot.ok { background: #6fe0a8; }
+  .dot.warn { background: var(--amber); }
+  .dot.bad { background: var(--red); }
+  @keyframes pulse { 50% { opacity: .35; } }
+  @media (prefers-reduced-motion: reduce) { .dot.on { animation: none; } }
+  .now { font-size: 14px; margin: 2px 0 6px; color: var(--text); }
+  .feed { list-style: none; margin: 8px 0 0; padding: 0; font-size: 12px; opacity: .92; max-height: 220px; overflow-y: auto; }
+  .feed li { display: grid; grid-template-columns: 62px 1fr; gap: 6px; padding: 3px 0; border-top: 1px solid rgba(255,255,255,.08); }
+  .feed time { opacity: .7; font-variant-numeric: tabular-nums; }
+  .small { font-size: 12px; opacity: .85; margin-top: 6px; }
+  .bar { height: 6px; border-radius: 3px; background: rgba(255,255,255,.15); overflow: hidden; margin: 3px 0 8px; }
+  .bar > span { display: block; height: 100%; background: currentColor; }
+  .task { border-top: 1px solid var(--line); padding: 10px 0 4px; }
+  .task:first-of-type { border-top: 0; padding-top: 2px; }
+  .task-title { font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 8px; }
+  .task-meta { font-size: 12px; color: var(--muted); margin: 2px 0 4px; }
+  .task-latest { font-size: 13px; }
+  .files { list-style: none; padding: 0; margin: 6px 0 0; font-size: 12px; }
+  .files li { display: flex; gap: 8px; align-items: baseline; padding: 2px 0; flex-wrap: wrap; }
+  .files .name { flex: 1 1 140px; min-width: 0; overflow-wrap: anywhere; }
+  .linkbtn { background: none; border: 0; color: var(--green-text); padding: 0; font: inherit; font-size: 12px; cursor: pointer; text-decoration: underline; }
+  .hint { font-size: 13px; color: var(--muted); }
+  #live { width: 100%; border-radius: 8px; border: 1px solid var(--line); cursor: pointer; display: block; }
+  .q { border-top: 1px solid var(--line); padding: 8px 0; font-size: 13px; }
+  .q .tag { font-size: 11px; color: var(--amber); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+  #readyModal[hidden], #emailModal[hidden] { display: none !important; }
+  #usageTop { position: fixed; top: 8px; right: 12px; z-index: 40; background: var(--panel); border: 1px solid var(--line);
+              border-radius: 8px; padding: 5px 10px; font-size: 11px; color: var(--muted); display: flex; gap: 12px; }
+  #usageTop .u { display: flex; align-items: center; gap: 6px; }
+  #usageTop .ubar { width: 60px; height: 5px; border-radius: 3px; background: var(--line); overflow: hidden; }
+  #usageTop .ubar span { display: block; height: 100%; background: #6fe0a8; }
+  #usageTop .ubar span.hi { background: var(--amber); }
+  #usageTop .ubar span.max { background: var(--red); }
+  .q input, .q select, .addbot input, .addbot textarea { width: 100%; margin-top: 4px; background: var(--bg); color: var(--text);
+    border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; font: inherit; font-size: 13px; }
+  .q button, .addbot button { margin-top: 6px; padding: 6px 12px; font-size: 13px; }
+  .addbot { margin: 6px 0; font-size: 13px; }
+  .conn { display: grid; grid-template-columns: 12px 1fr; gap: 8px; padding: 3px 0; font-size: 13px; color: var(--text); }
+  .conn .dot { margin-top: 5px; }
+  .conn span.d { color: var(--muted); }
+  .bot-row { display: grid; grid-template-columns: 12px 1fr; gap: 8px; align-items: baseline; padding: 4px 0; font-size: 13px; }
+  .bot-row b { font-weight: 600; }
+  .bot-row .dot { margin-top: 5px; }
+  .bot-row div span { color: var(--muted); }
+  #tasks { margin-top: 6px; border-top: 1px solid var(--line); padding-top: 6px; }
+  .job { padding: 6px 0; border-top: 1px solid var(--line); font-size: 13px; }
+  .job:first-child { border-top: 0; padding-top: 0; }
+  .job a { font-weight: 600; text-decoration: none; }
+  .job a:hover { text-decoration: underline; }
+  .job div { color: var(--muted); font-size: 12px; }
+  svg.spark { width: 100%; height: 40px; display: block; margin-top: 6px; }
+  details.memo summary { cursor: pointer; font-size: 13px; }
+  .memo-body { font-size: 13px; margin-top: 8px; }
+  main { display: flex; flex-direction: column; min-width: 0; height: 100vh; }
+  #log { flex: 1; overflow-y: auto; padding: 24px; }
+  .msg { max-width: 760px; margin: 0 auto 18px; }
+  .who { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+  .bubble { word-wrap: break-word; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--line); }
+  .bubble.plain { white-space: pre-wrap; }
+  .user .bubble { background: var(--raised); white-space: pre-wrap; }
+  .bot .bubble { background: var(--panel); }
+  .bubble p, .memo-body p { margin: 0 0 .6em; }
+  .bubble p:last-child { margin-bottom: 0; }
+  .bubble ul, .bubble ol, .memo-body ul, .memo-body ol { margin: 0 0 .6em; padding-left: 1.3em; }
+  .bubble h4, .memo-body h4 { margin: .8em 0 .3em; font-size: 15px; }
+  .bubble code, .memo-body code { font: 13px ui-monospace, Menlo, monospace; background: rgba(255,255,255,.08); padding: 1px 4px; border-radius: 4px; }
+  .bubble pre { background: var(--bg); padding: 10px; border-radius: 8px; overflow-x: auto; }
+  .bubble pre code { background: none; padding: 0; }
+  .typing { color: var(--muted); }
+  details.sources { margin-top: 8px; font-size: 13px; color: var(--muted); }
+  summary { cursor: pointer; }
+  .src { border-left: 2px solid var(--green-line); padding: 4px 10px; margin: 8px 0; }
+  .src b { color: var(--green-text); font-weight: 500; word-break: break-all; }
+  .src pre { white-space: pre-wrap; margin: 4px 0 0; font: 12px/1.4 ui-monospace, Menlo, monospace; color: var(--muted); }
+  .meta { font-size: 12px; color: var(--muted); margin-top: 6px; }
+  .note { font-size: 12px; color: var(--amber); margin-top: 6px; }
+  .action { font-size: 13px; color: var(--green-text); background: var(--green); border: 1px solid var(--green-line); border-radius: 8px; padding: 6px 10px; margin-top: 8px; }
+  form { border-top: 1px solid var(--line); padding: 14px 24px; display: flex; gap: 10px; align-items: flex-end; max-width: 808px; width: 100%; margin: 0 auto; }
+  textarea { flex: 1; resize: none; background: var(--panel); color: var(--text); border: 1px solid var(--line);
+             border-radius: 10px; padding: 10px 12px; font: inherit; min-height: 44px; max-height: 160px; }
+  textarea:focus, input:focus, select:focus, button:focus-visible { outline: 2px solid var(--purple-line); outline-offset: 1px; }
+  button { background: var(--purple); color: var(--purple-text); border: 1px solid var(--purple-line);
+           border-radius: 10px; padding: 10px 18px; font: inherit; cursor: pointer; }
+  button:disabled { opacity: .5; cursor: default; }
+  label { font-size: 13px; display: flex; justify-content: space-between; align-items: center; gap: 8px; margin: 4px 0; }
+  input[type=range] { width: 120px; accent-color: var(--purple-line); }
+  select { background: var(--bg); color: var(--text); border: 1px solid var(--line); border-radius: 6px; padding: 4px 6px; font: inherit; font-size: 13px; }
+  .empty { color: var(--muted); text-align: center; margin-top: 15vh; padding: 0 16px; }
+  #conn { font-size: 11px; font-weight: 500; color: var(--muted); display: inline-flex; align-items: center; gap: 5px; }
+  @media (max-width: 900px) { .app { grid-template-columns: 290px 1fr; } aside { padding: 16px; } }
+  @media (max-width: 640px) {
+    .app { display: flex; flex-direction: column; height: auto; }
+    main { order: -1; height: 85vh; }
+    aside { border-right: 0; border-top: 1px solid var(--line); padding: 16px; }
+    #log { padding: 16px; }
+    form { padding: 12px 16px; }
+  }
+</style>
+</head>
+<body>
+<div id="readyModal" hidden style="position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:50;display:flex;align-items:center;justify-content:center;padding:16px">
+  <div class="card" style="background:var(--panel);max-width:420px;width:100%">
+    <h2>Ready for your final click</h2>
+    <div id="readyText" style="font-size:15px;margin-bottom:12px"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button type="button" id="readyLater" style="background:transparent;color:var(--text);border-color:var(--line)">Later</button>
+      <button type="button" id="readyGo">Take control</button>
+    </div>
+  </div>
+</div>
+<div id="usageTop" title="Your Claude plan's usage, live"></div>
+<div id="emailModal" hidden style="position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:60;display:flex;align-items:center;justify-content:center;padding:16px">
+  <div class="card" style="background:var(--panel);max-width:420px;width:100%">
+    <h2>Which email should go on your applications?</h2>
+    <div id="emailChoices" style="margin:8px 0;font-size:14px"></div>
+    <input id="emailOther" type="email" placeholder="or type another, e.g. you@example.com" style="width:100%;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:6px;padding:8px">
+    <div style="display:flex;justify-content:flex-end;margin-top:10px"><button type="button" id="emailUse">Use this email</button></div>
+  </div>
+</div>
+<div class="app">
+  <aside>
+    <h1>HomeGrok <span id="conn"><span class="dot"></span>connecting</span></h1>
+    <div class="sub">Your own AI on this Mac. Tell it what to work on and it keeps going around the clock.</div>
+
+    <div class="card" id="fillerCard">
+      <h2>Applications <span class="pill" id="fillerPill"></span></h2>
+      <select id="jobPick" style="width:100%"><option value="">Pick a job to fill…</option></select>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;gap:8px">
+        <button type="button" id="fillPick" style="padding:6px 12px;font-size:13px;white-space:nowrap">Fill it</button>
+        <label style="margin:0"><input type="checkbox" id="autoApply"> Auto: keep filling my best matches</label>
+      </div>
+      <label style="margin:6px 0 0"><input type="checkbox" id="autoSubmit"> Auto-submit when fully verified (no guesses, no CAPTCHA)</label>
+      <div id="liveWrap" hidden>
+        <img id="live" alt="Live view of the application HomeGrok is filling. Click to take control." title="Click to take control: change anything, HomeGrok keeps filling the rest" style="margin-top:8px">
+        <div class="small" id="fillerInfo"></div>
+      </div>
+      <div id="questions"></div>
+      <details id="submittedBox" hidden style="margin-top:6px;font-size:12px"><summary>Submitted</summary><div id="submitted"></div></details>
+      <details id="skippedBox" hidden style="margin-top:6px;font-size:12px"><summary>Skipped</summary><div id="skipped"></div></details>
+    </div>
+
+    <div class="card">
+      <h2>Bots</h2>
+      <div id="bots"></div>
+      <details class="addbot"><summary>Add a bot</summary>
+        <input id="botName" placeholder="Name, e.g. Data analyst hunter">
+        <textarea id="botGoal" rows="3" placeholder="What it should keep doing, e.g. find new data analyst jobs in YOUR_CITY and write a resume and cover letter for each"></textarea>
+        <div style="display:flex;gap:6px;margin-top:4px;align-items:center">
+          <select id="botWhen"><option value="always">Keep going</option><option value="hourly">Every hour</option><option value="daily">Every day at</option></select>
+          <input id="botTime" type="time" value="09:00" style="width:auto;margin:0" hidden>
+        </div>
+        <button type="button" id="botAdd">Start bot</button>
+      </details>
+      <div id="tasks"><div class="hint">Give HomeGrok ongoing work in the chat, for example “Keep finding internships that fit me and write a tailored resume and cover letter for each.”</div></div>
+    </div>
+
+    <div class="card" id="resumeCard">
+      <h2>Your resume</h2>
+      <div class="hint" id="resumeNow">Paste your resume below or drop a file (PDF, Word) anywhere on this page.</div>
+      <textarea id="resumeText" rows="3" placeholder="Paste a resume here…" style="width:100%;margin-top:8px;font-size:13px"></textarea>
+      <div style="display:flex;gap:8px;margin-top:6px;align-items:center">
+        <button type="button" id="resumeSave" style="padding:6px 12px;font-size:13px">Use this resume</button>
+        <label style="margin:0;cursor:pointer;text-decoration:underline">or choose a file<input type="file" id="resumeFile" accept=".pdf,.docx,.txt,.md" hidden></label>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Deal alerts <span class="pill" id="dealPill"></span></h2>
+      <label style="margin:0 0 6px"><input type="checkbox" id="muteDeals"> Mute Mac notifications</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end;font-size:12px;margin-top:6px">
+        <label style="display:flex;flex-direction:column;gap:3px;margin:0">Min profit ($)
+          <input id="minProfit" type="number" step="0.5" min="0" style="width:100%;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:6px;padding:4px 6px"></label>
+        <label style="display:flex;flex-direction:column;gap:3px;margin:0">Min margin (%)
+          <input id="minMargin" type="number" step="1" min="0" style="width:100%;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:6px;padding:4px 6px"></label>
+        <button type="button" id="saveAlerts" style="padding:5px 12px;font-size:12px;white-space:nowrap">Save</button>
+      </div>
+      <div style="margin-top:10px;border-top:1px solid var(--line);padding-top:8px">
+        <div class="small">Plan a buy: product name and quantity</div>
+        <div style="display:flex;gap:6px;margin-top:4px">
+          <input id="planName" placeholder="e.g. Dish Soap" style="flex:1;min-width:0">
+          <input id="planQty" type="number" value="10" min="1" style="width:64px">
+          <button type="button" id="planGo" style="padding:4px 10px;font-size:12px">Plan</button>
+        </div>
+        <div id="planOut" class="small"></div>
+        <button type="button" id="reportGo" style="padding:4px 10px;font-size:12px;margin-top:8px">Save today's where-to-buy report</button>
+        <div id="reportOut" class="small"></div>
+      </div>
+      <div style="margin-top:10px;border-top:1px solid var(--line);padding-top:8px">
+        <div class="small">Where to buy and sell a product</div>
+        <div style="display:flex;gap:6px;margin-top:4px">
+          <input id="traceName" placeholder="e.g. Dish Soap" style="flex:1;min-width:0">
+          <button type="button" id="traceGo" style="padding:4px 10px;font-size:12px">Trace</button>
+        </div>
+        <div id="traceOut" class="small"></div>
+      </div>
+      <div id="deals"><div class="hint">No real deals yet. Connect eBay or import your own price sheet and alerts appear here and as Mac notifications.</div></div>
+    </div>
+
+    <div class="card">
+      <h2>Confirmed-open jobs <span class="pill" id="jobsPill"></span></h2>
+      <div id="jobs"><div class="hint">Job Scout is gathering postings…</div></div>
+    </div>
+
+    <div class="card brain">
+      <h2>Brain <span class="pill" id="brainPill"><span class="dot"></span>…</span></h2>
+      <div id="brain">Loading…</div>
+    </div>
+
+    <div class="card auto">
+      <h2>Autopilot <span class="pill" id="autoPill"><span class="dot"></span>…</span></h2>
+      <div class="now" id="autoNow">Loading…</div>
+      <ul class="feed" id="feed"></ul>
+      <div class="small" id="autoStats"></div>
+    </div>
+
+    <div class="card">
+      <h2>Memory</h2>
+      <details class="memo"><summary id="memoSummary">Nothing learned yet</summary><div class="memo-body" id="memoBody"></div></details>
+    </div>
+
+    <div class="card">
+      <h2>Local model</h2>
+      <div id="model">Loading…</div>
+      <div id="evo"></div>
+    </div>
+
+    <div class="card">
+      <h2>Monitoring</h2>
+      <div id="mon"></div>
+    </div>
+
+    <div class="card">
+      <h2>Connections</h2>
+      <div id="connections" class="hint">Checking…</div>
+    </div>
+
+    <div class="card">
+      <h2>Settings</h2>
+      <label style="display:block">Email to put on applications
+        <input id="applyEmail" type="email" placeholder="you@example.com" style="width:100%;margin-top:4px;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:6px;padding:6px 8px">
+      </label>
+      <button type="button" id="saveEmail" style="padding:6px 12px;font-size:13px;margin:4px 0 10px">Save email</button>
+      <label>Brain
+        <select id="brainSel">
+          <option value="auto">Claude (local model as backup)</option>
+          <option value="local">Local model only</option>
+        </select>
+      </label>
+      <label>Local creativity <input id="temp" type="range" min="0" max="1.5" step="0.1" value="0.8"></label>
+      <label>Local length <input id="len" type="range" min="20" max="400" step="20" value="120"></label>
+    </div>
+  </aside>
+  <main>
+    <div id="log"><div class="empty" id="empty">Ask anything, or give HomeGrok ongoing work. It answers with Claude using what it knows about your files and keeps working in the background.</div></div>
+    <div id="chips" style="max-width:808px;width:100%;margin:0 auto;padding:0 24px;display:flex;flex-wrap:wrap;gap:6px"></div>
+    <form id="form">
+      <label title="Attach a file" style="cursor:pointer;font-size:20px;padding:0 6px;user-select:none">📎<input type="file" id="attachFile" multiple hidden accept=".pdf,.docx,.pptx,.txt,.md,.csv,.tsv,.json,.py,.js,.html,.xml,.yaml,.yml,.log,.ipynb"></label>
+      <textarea id="input" rows="1" placeholder="Message HomeGrok… paste or drop a file here" autofocus></textarea>
+      <button id="send">Send</button>
+    </form>
+  </main>
+</div>
+<script>
+const KEY = "__API_KEY__";
+const VERSION = "__VERSION__";
+const headers = { "Content-Type": "application/json", "Authorization": "Bearer " + KEY };
+const $ = (id) => document.getElementById(id);
+
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text !== undefined) e.textContent = text;
+  return e;
+}
+function kv(k, v) {
+  const row = el("div", "kv");
+  row.append(el("span", "", k), el("span", "", v ?? "—"));
+  return row;
+}
+function pill(node, cls, text) { node.replaceChildren(el("span", "dot " + cls), document.createTextNode(text)); }
+function clock(t) { return new Date(t * 1000).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }); }
+function ago(t) {
+  const s = Math.round(Date.now() / 1000 - t);
+  if (s < 60) return "just now";
+  if (s < 3600) return Math.round(s / 60) + " min ago";
+  if (s < 86400) return Math.round(s / 3600) + " h ago";
+  return Math.round(s / 86400) + " d ago";
+}
+function until(t) {
+  const s = Math.round(t - Date.now() / 1000);
+  if (s <= 60) return "any moment";
+  if (s < 3600) return "in " + Math.round(s / 60) + " min";
+  return "at " + clock(t);
+}
+function fileUrl(path) { return "/api/file?key=" + encodeURIComponent(KEY) + "&path=" + encodeURIComponent(path); }
+async function reveal(path) { await fetch("/api/reveal", { method: "POST", headers, body: JSON.stringify({ path }) }); }
+
+// Minimal, safe markdown: everything is escaped first, then a few patterns become tags.
+function esc(s) { return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+function inlineMd(s) {
+  return s.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/`([^`]+)`/g, "<code>$1</code>")
+          .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+}
+function md(text) {
+  return text.split("```").map((chunk, i) => {
+    if (i % 2) return "<pre><code>" + esc(chunk.replace(/^[\w-]*\n/, "")) + "</code></pre>";
+    let html = "", list = null;
+    const close = () => { if (list) { html += `</${list}>`; list = null; } };
+    for (const line of esc(chunk).split("\n")) {
+      let m;
+      if ((m = line.match(/^\s*[-*•]\s+(.*)/))) { if (list !== "ul") { close(); html += "<ul>"; list = "ul"; } html += `<li>${inlineMd(m[1])}</li>`; continue; }
+      if ((m = line.match(/^\s*\d+[.)]\s+(.*)/))) { if (list !== "ol") { close(); html += "<ol>"; list = "ol"; } html += `<li>${inlineMd(m[1])}</li>`; continue; }
+      close();
+      if ((m = line.match(/^#{1,6}\s+(.*)/))) html += `<h4>${inlineMd(m[1])}</h4>`;
+      else if (line.trim()) html += `<p>${inlineMd(line)}</p>`;
+    }
+    close();
+    return html;
+  }).join("");
+}
+// While a reply streams, hide the task marker line Claude may be writing at the end.
+function visible(text) { const i = text.indexOf("[["); return i < 0 ? text : text.slice(0, i); }
+
+function spark(values) {
+  if (values.length < 2) return null;
+  const min = Math.min(...values), max = Math.max(...values), span = (max - min) || 1;
+  const pts = values.map((v, i) => `${(i / (values.length - 1)) * 100},${4 + (1 - (v - min) / span) * 32}`).join(" ");
+  const ns = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(ns, "svg");
+  svg.setAttribute("viewBox", "0 0 100 40"); svg.setAttribute("preserveAspectRatio", "none"); svg.classList.add("spark");
+  const line = document.createElementNS(ns, "polyline");
+  line.setAttribute("points", pts); line.setAttribute("fill", "none");
+  line.setAttribute("stroke", "currentColor"); line.setAttribute("stroke-width", "2");
+  line.setAttribute("vector-effect", "non-scaling-stroke");
+  svg.append(line);
+  return svg;
+}
+
+function botRow(cls, name, detail) {
+  const row = el("div", "bot-row");
+  const text = el("div"); text.append(el("b", "", name), el("span", "", " · " + detail));
+  row.append(el("span", "dot " + cls), text);
+  return row;
+}
+
+function renderBots(s) {
+  const a = s.autopilot || {}, act = a.activity || "", running = a.state !== "off";
+  const live = (prefix) => running && act.startsWith(prefix) ? "on" : running ? "ok" : "";
+  const box = $("bots"); box.replaceChildren();
+  const j = (s.jobs || {}).stats || {};
+  box.append(botRow(live("Job Scout"), "Job Scout",
+    j.listed ? `${j.listed.toLocaleString()} active postings, ${j.verified_open} confirmed open` : "gathering postings"));
+  const c = s.corpus || {};
+  box.append(botRow(live("Web Learner"), "Web Learner",
+    c.chars ? `${(c.chars / 1e6).toFixed(1)}M characters of public text learned` : "starting"));
+  const evo = s.evolution && s.evolution.history.length ? s.evolution.history[s.evolution.history.length - 1] : null;
+  box.append(botRow(live("Trainer"), "Trainer",
+    c.tokenizer_ready ? (evo ? `GPU, generation ${s.evolution.generation}, loss ${evo.best.toFixed(2)}` : "GPU, first generation")
+                      : "waiting for enough public text"));
+  const m = a.memory || {};
+  box.append(botRow("", "Memory", "off: research uses Claude and the web, not your files"));
+  const inbox = botRow("", "Inbox", "Gmail not connected · ");
+  const link = el("a", "", "connect in Claude settings"); link.href = "https://claude.ai/settings/connectors"; link.target = "_blank"; link.rel = "noopener";
+  inbox.lastChild.append(link);
+  box.append(inbox);
+}
+
+function renderDeals(items) {
+  const box = $("deals"); box.replaceChildren();
+  $("dealPill").textContent = items && items.length ? `${items.length} real` : "";
+  if (!items || !items.length) { box.append(el("div", "hint", "No real deals yet. Connect eBay or import your own price sheet and alerts appear here and as Mac notifications.")); return; }
+  for (const d of items) {
+    const div = el("div", "job");
+    div.append(el("b", "", `${d.name}${d.brand ? " · " + d.brand : ""}`));
+    div.append(el("div", "", `Buy at ${d.buy_source}, sell at ${d.sell_source} · profit $${d.profit.toFixed(2)} (${d.margin_pct.toFixed(0)}%) · ${clock(d.time)}`));
+    box.append(div);
+  }
+}
+
+function renderDealSettings(d) {
+  if (!d) return;
+  if (document.activeElement !== $("minProfit")) $("minProfit").value = d.min_profit;
+  if (document.activeElement !== $("minMargin")) $("minMargin").value = d.min_margin;
+  $("muteDeals").checked = !!d.muted;
+}
+$("muteDeals").onchange = (e) => fetch("/api/settings", { method: "POST", headers, body: JSON.stringify({ deal_alerts: { muted: e.target.checked } }) });
+$("saveAlerts").onclick = async () => {
+  const r = await fetch("/api/settings", { method: "POST", headers, body: JSON.stringify({ deal_alerts: { min_profit: +$("minProfit").value, min_margin: +$("minMargin").value } }) });
+  $("saveAlerts").textContent = r.ok ? "Saved" : "Check numbers";
+  setTimeout(() => $("saveAlerts").textContent = "Save", 2000);
+};
+$("planGo").onclick = async () => {
+  const r = await fetch("/api/deal/plan", { method: "POST", headers, body: JSON.stringify({ name: $("planName").value, quantity: +$("planQty").value }) });
+  const d = await r.json(); const out = $("planOut"); out.replaceChildren();
+  if (!r.ok) { out.textContent = d.error; return; }
+  out.append(el("div", "", `Buy ${d.quantity} × ${d.name} at ${d.buy_at} for $${d.total_cost.toFixed(2)} (${d.buy_each.toFixed(2)} each)`));
+  out.append(el("div", "", `Sell at ${d.sell_at} for $${d.total_revenue.toFixed(2)} (${d.sell_each.toFixed(2)} each)`));
+  out.append(el("div", "", `Expected profit after fees and shipping: $${d.total_profit.toFixed(2)} (${d.margin_pct}%)`));
+  out.append(el("div", "", d.caveat));
+};
+$("traceGo").onclick = async () => {
+  const out = $("traceOut"); out.replaceChildren(el("div", "", "Looking…"));
+  const r = await fetch("/api/deal/trace", { method: "POST", headers, body: JSON.stringify({ name: $("traceName").value }) });
+  const d = await r.json(); out.replaceChildren();
+  if (!r.ok) { out.textContent = d.error; return; }
+  if (d.best_profit) out.append(el("div", "", `Best profit: buy at ${d.best_profit.buy_source}, sell at ${d.best_profit.sell_source}, $${d.best_profit.profit.toFixed(2)} per unit (${d.best_profit.margin_pct.toFixed(0)}% margin)`));
+  if (d.best_margin && (!d.best_profit || d.best_margin.id !== d.best_profit.id)) out.append(el("div", "", `Best margin: buy at ${d.best_margin.buy_source}, sell at ${d.best_margin.sell_source}, ${d.best_margin.margin_pct.toFixed(0)}%`));
+  if (!d.buy_points.length) out.append(el("div", "", "No real prices for this product yet, so no buy points or profit. Open the store searches below, or connect eBay or import a price sheet."));
+  for (const b of d.buy_points.slice(0, 8)) {
+    const a = el("a", "", `Buy at ${b.store}: $${b.price.toFixed(2)}${b.in_stock ? "" : " (out of stock)"}`); a.href = b.url; a.target = "_blank"; a.rel = "noopener";
+    out.append(el("div", "", ""), a);
+  }
+  out.append(el("div", "", "Search each store yourself:"));
+  for (const s of d.search_links) { const a = el("a", "", s.store); a.href = s.url; a.target = "_blank"; a.rel = "noopener"; out.append(el("div", "", ""), a); }
+};
+$("reportGo").onclick = async () => {
+  $("reportOut").textContent = "Building report from real data…";
+  const r = await fetch("/api/deal/report", { method: "POST", headers, body: "{}" });
+  const d = await r.json(); $("reportOut").textContent = r.ok ? `Saved: ${d.path}` : "Could not build the report";
+};
+
+function renderJobs(jobs) {
+  const box = $("jobs");
+  if (!jobs || !jobs.top || !jobs.top.length) return;
+  $("jobsPill").textContent = jobs.stats.new_today ? `${jobs.stats.new_today.toLocaleString()} new today` : "";
+  box.replaceChildren();
+  for (const j of jobs.top) {
+    const div = el("div", "job");
+    const a = el("a", "", `${j.title} · ${j.company}`); a.href = j.url; a.target = "_blank"; a.rel = "noopener";
+    const posted = new Date(j.date_posted * 1000).toLocaleDateString([], { month: "short", day: "numeric" });
+    const fillBtn = el("button", "linkbtn", "Fill application"); fillBtn.type = "button";
+    fillBtn.onclick = async () => { fillBtn.textContent = "Opening Chrome…";
+      await fetch("/api/apply", { method: "POST", headers, body: JSON.stringify({ url: j.url }) });
+      setTimeout(() => fillBtn.textContent = "Fill application", 8000); };
+    const meta = el("div", "", `${(j.locations || []).slice(0, 2).join(", ") || "Location not listed"} · posted ${posted}` + (j.used ? " · resume written" : "") + " · ");
+    meta.append(fillBtn);
+    div.append(a, meta);
+    box.append(div);
+  }
+}
+
+let liveShot = null, readyShown = new Set(), readyUrl = "";
+const takeControl = (url) => fetch("/api/apply/focus", { method: "POST", headers, body: JSON.stringify({ url: url || "" }) });
+
+function renderFiller(f, fillable, auto) {
+  // job menu (keeps your selection)
+  const pick = $("jobPick"), chosen = pick.value;
+  const options = (fillable || []).map((j) => j.url + "|" + j.label + (j.opened ? " (opened)" : "")).join("\n");
+  if (pick.dataset.list !== options) {
+    pick.dataset.list = options;
+    pick.replaceChildren(el("option", "", "Pick a job to fill…")); pick.firstChild.value = "";
+    for (const j of fillable || []) { const o = el("option", "", j.label + (j.opened ? " (opened)" : "")); o.value = j.url; pick.append(o); }
+    pick.value = chosen;
+  }
+  if (document.activeElement !== $("autoApply")) $("autoApply").checked = !!auto;
+
+  const running = f && f.running && f.pages && f.pages.length;
+  $("liveWrap").hidden = !running;
+  if (!running) { liveShot = null; pill($("fillerPill"), "", auto ? "auto mode on" : ""); $("questions").replaceChildren(); return; }
+  // swap the picture only when the filler produced a new screenshot, after the new one has loaded
+  const shot = f.updated;
+  if (shot !== liveShot) {
+    liveShot = shot;
+    const next = new Image();
+    next.onload = () => { $("live").src = next.src; };
+    next.src = "/api/apply/live?key=" + encodeURIComponent(KEY) + "&t=" + Math.round(shot * 1000);
+  }
+  const page = f.pages[f.pages.length - 1];
+  const asked = f.pages.flatMap((p) => (p.questions || []).map((q) => ({ ...q, url: p.url })));
+  const thinking = f.pages.some((p) => p.thinking);
+  pill($("fillerPill"), asked.length ? "warn" : "on",
+       asked.length ? `${asked.length} need${asked.length === 1 ? "s" : ""} you` : thinking ? "Claude is answering" : "filling");
+  $("fillerInfo").textContent = `${page.title || page.url} · ${page.filled.length} fields filled` +
+    (f.pages.length > 1 ? ` · ${f.pages.length} applications open` : "") + (thinking ? " · Claude is answering the rest" : "") +
+    ". Click the picture to take control.";
+
+  const box = $("questions");
+  const have = new Set([...box.querySelectorAll(".q")].map((n) => n.dataset.key));
+  const wanted = new Set(asked.map((q) => q.key));
+  for (const n of [...box.querySelectorAll(".q")]) if (!wanted.has(n.dataset.key)) n.remove();
+  for (const q of asked) {
+    if (have.has(q.key)) continue;   // keep what you're typing
+    const div = el("div", "q"); div.dataset.key = q.key;
+    if (q.important) div.append(el("div", "tag", "Needs you"));
+    div.append(el("div", "", q.question));
+    let input;
+    if (q.options && q.options.length) {
+      input = el("select"); input.append(el("option", "", "Choose…"));
+      for (const o of q.options) input.append(el("option", "", o));
+      if (q.suggestion && q.options.includes(q.suggestion)) input.value = q.suggestion;
+    } else { input = q.suggestion && q.suggestion.length > 60 ? el("textarea") : el("input"); input.value = q.suggestion || ""; }
+    const save = el("button", "", q.suggestion ? "Use this answer" : "Answer"); save.type = "button";
+    save.onclick = async () => {
+      const answer = input.value; if (!answer || answer === "Choose…") return;
+      save.textContent = "Filling it in…";
+      await fetch("/api/apply/answer", { method: "POST", headers, body: JSON.stringify({ key: q.key, answer }) });
+    };
+    div.append(input, save, el("div", "small", q.suggestion ? "Claude's suggestion; edit it if you like. HomeGrok remembers your answer." : "HomeGrok remembers this for future applications."));
+    if (q.important) box.prepend(div); else box.append(div);
+  }
+
+  // final click: pop up once per ready application
+  const ready = f.pages.find((p) => p.ready && !readyShown.has(p.url));
+  if (ready && $("readyModal").hidden) {
+    readyShown.add(ready.url); readyUrl = ready.url;
+    $("readyText").textContent = `${ready.title || "Your application"} is filled in and ready. Take control to review it and click Submit.`;
+    $("readyModal").hidden = false;
+  }
+}
+
+function renderUsage(b) {
+  const box = $("usageTop"); box.replaceChildren();
+  const limits = (b && b.limits) || [];
+  if (!limits.length) { box.textContent = "Claude usage: waiting for the first call"; return; }
+  for (const w of limits) {
+    const u = el("div", "u"); const bar = el("div", "ubar"); const fill = el("span", w.used >= 95 ? "max" : w.used >= 80 ? "hi" : "");
+    fill.style.width = Math.min(100, w.used) + "%"; bar.append(fill);
+    u.append(el("span", "", w.name), bar, el("span", "", `${w.used}%`));
+    u.title = w.resets_at ? `resets ${w.resets_at}` : ""; box.append(u);
+  }
+}
+
+let emailAsked = false;
+function askEmail(s) {
+  if (emailAsked || s.apply_email) return;
+  emailAsked = true;
+  const box = $("emailChoices"); box.replaceChildren();
+  if (s.resume_email) {
+    const label = el("label"); const radio = el("input"); radio.type = "radio"; radio.name = "em"; radio.value = s.resume_email; radio.checked = true;
+    label.append(radio, document.createTextNode(" " + s.resume_email + " (from your resume)")); box.append(label);
+  }
+  $("emailModal").hidden = false;
+}
+$("emailUse").onclick = async () => {
+  const typed = $("emailOther").value.trim(), picked = document.querySelector("input[name=em]:checked");
+  const email = typed || (picked && picked.value); if (!email) return;
+  const r = await fetch("/api/settings", { method: "POST", headers, body: JSON.stringify({ email }) });
+  if (r.ok) $("emailModal").hidden = true; else $("emailOther").value = "", $("emailOther").placeholder = (await r.json()).error;
+};
+
+function renderConnections(items) {
+  if (!items || !items.length) return;
+  const box = $("connections"); box.replaceChildren(); box.className = "";
+  for (const c of items) {
+    const row = el("div", "conn"); const text = el("div");
+    text.append(el("b", "", c.name), el("span", "d", " · " + c.detail));
+    if (c.link) { const a = el("a", "", " Connect"); a.href = c.link; a.target = "_blank"; a.rel = "noopener"; text.append(a); }
+    row.append(el("span", "dot " + (c.ok ? "ok" : "")), text); box.append(row);
+  }
+}
+
+function renderTasks(tasks, autopilot) {
+  const box = $("tasks");
+  if (!tasks.length) return;
+  box.replaceChildren();
+  for (const t of tasks) {
+    const div = el("div", "task");
+    const title = el("div", "task-title");
+    const dot = el("span", "dot");
+    const working = t.status === "active" && autopilot.state === "working" && (autopilot.activity || "").includes(t.title);
+    dot.className = "dot " + (t.status !== "active" ? "" : working ? "on" : t.waiting ? "warn" : "ok");
+    title.append(dot, document.createTextNode(t.title));
+    div.append(title);
+    let meta = t.status === "active" ? (working ? "Working now" : t.waiting ? t.waiting : "Next step " + until(t.next_run))
+             : t.status === "done" ? "Finished" : "Stopped";
+    meta += ` · ${t.schedule} · ${t.steps} step${t.steps === 1 ? "" : "s"} · ${t.file_count} file${t.file_count === 1 ? "" : "s"}`;
+    div.append(el("div", "task-meta", meta));
+    if (t.latest) div.append(el("div", "task-latest", `${t.latest.summary} (${ago(t.latest.time)})`));
+    if (t.files.length) {
+      const ul = el("ul", "files");
+      for (const f of t.files) {
+        const li = el("li");
+        const a = el("a", "name", f.name); a.href = fileUrl(f.path); a.target = "_blank"; a.rel = "noopener";
+        li.append(a);
+        if (f.docx) { const w = el("a", "", "Word"); w.href = fileUrl(f.docx); li.append(w); }
+        const show = el("button", "linkbtn", "Show in Finder"); show.type = "button"; show.onclick = () => reveal(f.path);
+        li.append(show);
+        ul.append(li);
+      }
+      div.append(ul);
+    }
+    if (t.status === "active") {
+      const stop = el("button", "linkbtn", "Stop this bot"); stop.type = "button";
+      stop.onclick = async () => { if (confirm(`Stop “${t.title}”?`)) await fetch("/api/bots/stop", { method: "POST", headers, body: JSON.stringify({ id: t.id }) }); };
+      div.append(stop, document.createTextNode(" "));
+    }
+    const folder = el("button", "linkbtn", "Open results folder"); folder.type = "button";
+    folder.onclick = () => reveal(t.folder);
+    if (t.file_count) div.append(folder);
+    box.append(div);
+  }
+}
+
+function renderBrain(b) {
+  const box = $("brain"); box.replaceChildren();
+  const p = $("brainPill");
+  if (!b.enabled) { pill(p, "", "Off"); box.textContent = "Claude is off, so the local model answers. Run ./hg claude --enable"; return; }
+  if (!b.cli_found) { pill(p, "bad", "Not found"); box.textContent = "The claude command isn't installed on this Mac."; return; }
+  if (b.blocked_until) pill(p, "warn", "Limit reached");
+  else if (b.background_waiting) pill(p, "warn", "Saving your usage");
+  else if (b.last_error) pill(p, "warn", "Last call failed");
+  else pill(p, "ok", "Ready");
+  box.append(kv("Model", (b.model || "Claude") + " · your subscription"));
+  for (const w of b.limits || []) {
+    box.append(kv(`${w.name} usage`, `${w.used}%` + (w.resets_at ? ` · resets ${w.resets_at}` : "")));
+    const bar = el("div", "bar"); const fill = el("span"); fill.style.width = Math.min(100, w.used) + "%"; bar.append(fill); box.append(bar);
+  }
+  if (b.blocked_until) box.append(el("div", "small", `Usage limit reached. Everything resumes at ${b.resets_at}.`));
+  else if (b.background_waiting) box.append(el("div", "small", `${b.background_waiting}. Background work resumes at ${b.background_resumes_at}.`));
+  box.append(kv("Today", `${b.calls_today.chat} chats · ${b.calls_today.background} background calls`));
+  if (b.last_error && !b.blocked_until) box.append(el("div", "small", "Last error: " + b.last_error.message));
+}
+
+function renderAutopilot(a, mem) {
+  const states = { working: ["on", "Working"], learning: ["on", "Learning"], training: ["on", "Training"],
+                   scanning: ["on", "Scanning"], starting: ["on", "Starting"], idle: ["ok", "Running"],
+                   waiting: ["warn", "Waiting"], error: ["bad", "Error"], off: ["", "Not running"] };
+  const [cls, label] = states[a.state] || ["", a.state || "Not running"];
+  pill($("autoPill"), cls, label);
+  $("autoNow").textContent = a.state === "off" ? "The autopilot isn't running. Start it with ./service.sh install" : (a.activity || "…");
+  const feed = $("feed"); feed.replaceChildren();
+  for (const item of a.activity_log || []) {
+    const li = el("li"); li.append(el("time", "", clock(item.time)), el("span", "", item.message)); feed.append(li);
+  }
+  const m = a.memory;
+  $("autoStats").textContent = m ? `Claude has read ${m.digested} of your files` + (m.pending ? `, ${m.pending} waiting` : "") : "";
+  $("memoSummary").textContent = mem.files ? `What HomeGrok knows about you (from ${mem.files} files)` : "Nothing learned yet";
+  if (mem.note) $("memoBody").innerHTML = md(mem.note) + (mem.updated ? `<div class="small">Updated ${esc(mem.updated)}</div>` : "");
+}
+
+// Rebuild a panel only when its own content changed, so nothing flickers on each live update.
+const lastSig = {};
+function section(key, data, fn) {
+  const sig = JSON.stringify(data);
+  if (lastSig[key] === sig) return;
+  lastSig[key] = sig;
+  fn();
+}
+// Timestamps and counters that change every few seconds don't count as a change.
+function stable(a) { if (!a) return a; const { updated, started, cycle, ...rest } = a; return rest; }
+
+function render(s) {
+  if (s.version && s.version !== VERSION) { location.reload(); return; }  // HomeGrok was updated
+  if (s.chat_count > chatCount) syncChat();
+  section("usage", s.brain && s.brain.limits, () => renderUsage(s.brain));
+  askEmail(s);
+  section("bots", [s.autopilot && stable(s.autopilot), s.jobs && s.jobs.stats, s.corpus, s.evolution], () => renderBots(s));
+  renderFiller(s.filler, s.fillable, s.auto_apply);
+  if (document.activeElement !== $("applyEmail") && !$("applyEmail").dataset.dirty) $("applyEmail").value = s.apply_email || "";
+  if (document.activeElement !== $("autoSubmit")) $("autoSubmit").checked = !!s.auto_submit;
+  const sub = s.submitted || [];
+  section("submitted", sub, () => {
+    $("submittedBox").hidden = !sub.length;
+    $("submitted").replaceChildren(...sub.map((x) => el("div", "small", `${x.result === "submitted" ? "✓ Submitted" : "Needs you"}: ${x.title || x.url} · ${clock(x.time)}`)));
+  });
+  const sk = s.skipped || [];
+  section("skipped", sk, () => {
+    $("skippedBox").hidden = !sk.length;
+    $("skipped").replaceChildren(...sk.map((x) => el("div", "small", `${x.title || x.url}: ${x.reason}`)));
+  });
+  section("connections", s.connections, () => renderConnections(s.connections));
+  section("resume", s.resume, () => renderResume(s.resume));
+  section("jobs", s.jobs, () => renderJobs(s.jobs));
+  section("deals", s.deal_alerts, () => renderDeals(s.deal_alerts));
+  renderDealSettings(s.deal_settings);
+  section("tasks", [s.tasks, stable(s.autopilot)], () => renderTasks(s.tasks || [], s.autopilot || {}));
+  section("brain", s.brain, () => renderBrain(s.brain));
+  section("autopilot", [stable(s.autopilot), s.memory], () => renderAutopilot(s.autopilot, s.memory));
+  section("model", [s.model, s.model_info, s.device, s.evolution && s.evolution.generation], () => {
+  const m = $("model"); m.replaceChildren();
+  if (s.model) {
+    const i = s.model_info, c = i.config;
+    m.append(kv("Name", s.model), kv("Parameters", (i.params / 1e6).toFixed(2) + "M"),
+      kv("Layers × width", `${c.n_layer} × ${c.n_embd}`), kv("Val loss", i.metrics.val_loss.toFixed(3)), kv("Device", s.device));
+  } else m.textContent = "No local model yet. The autopilot trains one.";
+  });
+  const e = $("evo"); e.replaceChildren();
+  if (s.evolution && s.evolution.history.length) {
+    const h = s.evolution.history, last = h[h.length - 1];
+    e.append(kv("Generation", s.evolution.generation), kv("Best loss (latest gen)", last.best.toFixed(3)));
+    const sp = spark(h.map((x) => x.best)); if (sp) e.append(sp);
+  }
+  const mon = s.monitor, u = mon.usage_all_time, d = $("mon"); d.replaceChildren();
+  d.append(kv("Requests", mon.requests), kv("Errors", mon.errors),
+    kv("Latency p50", mon.latency_p50_ms != null ? (mon.latency_p50_ms / 1000).toFixed(1) + " s" : null),
+    kv("Tokens generated (all time)", u.completion_tokens.toLocaleString()),
+    kv("Passages indexed", s.passages_indexed.toLocaleString()));
+}
+
+// Live updates: the server pushes a new snapshot whenever anything changes.
+function connect() {
+  const events = new EventSource("/api/events?key=" + encodeURIComponent(KEY));
+  events.onopen = () => pill($("conn"), "ok", "live");
+  events.onmessage = (ev) => render(JSON.parse(ev.data));
+  events.onerror = () => pill($("conn"), "warn", "reconnecting");  // EventSource retries on its own
+}
+
+function addMessage(role, text) {
+  $("empty")?.remove();
+  const wrap = el("div", "msg " + role);
+  wrap.append(el("div", "who", role === "user" ? "You" : "HomeGrok"), el("div", "bubble", text));
+  $("log").append(wrap);
+  $("log").scrollTop = $("log").scrollHeight;
+  return wrap;
+}
+
+function finishBotMessage(bot, data) {
+  const bubble = bot.querySelector(".bubble");
+  if (data.brain === "claude") bubble.innerHTML = md(data.reply || "");
+  else { bubble.classList.add("plain"); bubble.textContent = data.reply || (data.model ? "(empty reply)" : "No local model trained yet. Showing matching files only."); }
+  if (data.note) bot.append(el("div", "note", data.note));
+  for (const a of data.actions || []) {
+    bot.append(el("div", "action", a.type === "started"
+      ? `Started working on “${a.title}”. Results appear under Working on and in ${a.folder}.`
+      : a.type === "filling" ? "Opening the application in Chrome and filling it in. Review it there and click Submit yourself."
+      : `Stopped “${a.title}”.`));
+  }
+  if (data.sources && data.sources.length) {
+    const det = el("details", "sources"); det.append(el("summary", "", `Used from your files (${data.sources.length})`));
+    for (const s of data.sources) {
+      const d = el("div", "src");
+      if (typeof s === "string") d.append(el("b", "", s));
+      else d.append(el("b", "", s.path), el("pre", "", s.snippet));
+      det.append(d);
+    }
+    bot.append(det);
+  }
+  const who = data.brain === "claude" ? `Claude (${data.model}) · your subscription`
+            : data.brain === "waiting" ? "saved · answers when your Claude plan resets"
+            : data.brain === "ollama" ? `${data.model} · open model on your Mac's GPU` : `local model ${data.model || "(none yet)"}`;
+  bot.append(el("div", "meta", who + (data.latency_ms ? ` · ${(data.latency_ms / 1000).toFixed(1)} s` : "")));
+}
+
+// The conversation lives on the server, so every open window shows the same messages,
+// including ones sent from the terminal or another window.
+let chatCount = 0, historyLoaded = false, sending = false, syncing = false;
+async function fetchHistory() { return (await fetch("/api/history", { headers })).json(); }
+function showHistoryItem(item) {
+  if (item.role === "user") addMessage("user", item.text);
+  else finishBotMessage(addMessage("bot", ""), { ...item, reply: item.text });
+}
+async function loadHistory() {
+  try {
+    const h = await fetchHistory();
+    h.items.forEach(showHistoryItem);
+    chatCount = h.count;
+    $("log").scrollTop = $("log").scrollHeight;
+  } catch (err) { /* first run */ }
+  historyLoaded = true;
+}
+async function syncChat() {
+  if (!historyLoaded || sending || syncing) return;
+  syncing = true;
+  try {
+    const h = await fetchHistory();
+    const fresh = Math.min(h.count - chatCount, h.items.length);
+    if (fresh > 0) { h.items.slice(-fresh).forEach(showHistoryItem); $("log").scrollTop = $("log").scrollHeight; }
+    chatCount = h.count;
+  } catch (err) { /* try again on the next update */ }
+  syncing = false;
+}
+
+// Attachments: paste, drop or pick. The text is read by HomeGrok and sent with your message.
+let pendingFiles = [];
+function renderChips() {
+  const box = $("chips"); box.replaceChildren();
+  pendingFiles.forEach((f, i) => {
+    const chip = el("span", "", `📄 ${f.name} `);
+    chip.style.cssText = "background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:3px 8px;font-size:12px";
+    const x = el("button", "", "×"); x.type = "button"; x.className = "ghost";
+    x.style.cssText = "padding:0 6px;margin-left:4px";
+    x.onclick = () => { pendingFiles.splice(i, 1); renderChips(); };
+    chip.append(x); box.append(chip);
+  });
+}
+function addFiles(list) {
+  for (const file of list) {
+    if (file.size > 8 * 1024 * 1024) { alert(`${file.name} is larger than 8 MB`); continue; }
+    const reader = new FileReader();
+    reader.onload = () => { pendingFiles.push({ name: file.name, data: reader.result.split(",")[1] }); renderChips(); };
+    reader.readAsDataURL(file);
+  }
+}
+$("input").addEventListener("paste", (e) => {
+  const files = [...(e.clipboardData?.files || [])];
+  if (files.length) { e.preventDefault(); addFiles(files); }
+});
+$("attachFile").onchange = (e) => { addFiles(e.target.files); e.target.value = ""; };
+document.addEventListener("dragover", (e) => e.preventDefault());
+document.addEventListener("drop", (e) => {
+  e.preventDefault();
+  if (e.dataTransfer?.files?.length && e.target.closest && e.target.closest("main")) addFiles(e.dataTransfer.files);
+});
+
+$("form").addEventListener("submit", async (ev) => {
+  ev.preventDefault();
+  const text = $("input").value.trim();
+  if (!text && !pendingFiles.length) return;
+  const attachments = pendingFiles; pendingFiles = []; renderChips();
+  $("input").value = ""; $("send").disabled = true;
+  sending = true;
+  addMessage("user", (text || "(file)") + (attachments.length ? `  [📄 ${attachments.map((a) => a.name).join(", ")}]` : ""));
+  const bot = addMessage("bot", "");
+  const bubble = bot.querySelector(".bubble");
+  bubble.replaceChildren(el("span", "typing", "Thinking…"));
+  try {
+    const r = await fetch("/api/chat", { method: "POST", headers, body: JSON.stringify({
+      message: text, attachments, brain: $("brainSel").value, temperature: +$("temp").value, max_tokens: +$("len").value }) });
+    if (!r.ok) throw new Error((await r.json()).error);
+    const reader = r.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "", streamed = "", done = null;
+    while (true) {
+      const { value, done: finished } = await reader.read();
+      if (finished) break;
+      buffer += decoder.decode(value, { stream: true });
+      let nl;
+      while ((nl = buffer.indexOf("\n")) >= 0) {
+        const line = buffer.slice(0, nl); buffer = buffer.slice(nl + 1);
+        if (!line.trim()) continue;
+        const msg = JSON.parse(line);
+        if (msg.type === "delta") {
+          streamed += msg.text;
+          bubble.innerHTML = md(visible(streamed)) || '<span class="typing">Thinking…</span>';
+          $("log").scrollTop = $("log").scrollHeight;
+        } else if (msg.type === "done") done = msg;
+        else if (msg.type === "error") throw new Error(msg.error);
+      }
+    }
+    if (!done) throw new Error("the reply was cut off");
+    finishBotMessage(bot, done);
+  } catch (err) {
+    bubble.textContent = "Error: " + err.message;
+  }
+  try { chatCount = (await fetchHistory()).count; } catch (err) { /* next update syncs */ }
+  sending = false;
+  $("log").scrollTop = $("log").scrollHeight;
+  $("send").disabled = false; $("input").focus();
+});
+$("input").addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); $("form").requestSubmit(); }
+});
+async function sendResume(body) {
+  $("resumeNow").textContent = "Saving…";
+  const r = await fetch("/api/resume", { method: "POST", headers, body: JSON.stringify(body) });
+  const d = await r.json();
+  $("resumeNow").textContent = r.ok ? `Now using: ${d.source} (${d.chars.toLocaleString()} characters). New resumes start from it.` : "Error: " + d.error;
+  if (r.ok) $("resumeText").value = "";
+}
+function uploadFile(file) {
+  const reader = new FileReader();
+  reader.onload = () => sendResume({ name: file.name, data: reader.result.split(",")[1] });
+  reader.readAsDataURL(file);
+}
+$("resumeSave").onclick = () => { const t = $("resumeText").value.trim(); if (t) sendResume({ text: t }); };
+$("resumeFile").onchange = (e) => { if (e.target.files[0]) uploadFile(e.target.files[0]); };
+document.addEventListener("dragover", (e) => e.preventDefault());
+document.addEventListener("drop", (e) => {   // dropped on the chat goes to chat; anywhere else sets your resume
+  e.preventDefault();
+  if (e.target.closest && e.target.closest("main")) return;
+  const f = e.dataTransfer.files[0]; if (f) uploadFile(f);
+});
+function renderResume(info) {
+  if (info && $("resumeNow").textContent.startsWith("Paste")) $("resumeNow").textContent = `Now using: ${info.source} (${info.chars.toLocaleString()} characters).`;
+}
+$("live").onclick = () => takeControl("");
+$("readyGo").onclick = () => { $("readyModal").hidden = true; takeControl(readyUrl); };
+$("readyLater").onclick = () => { $("readyModal").hidden = true; };
+$("fillPick").onclick = async () => {
+  const url = $("jobPick").value; if (!url) return;
+  $("fillPick").textContent = "Opening…";
+  await fetch("/api/apply", { method: "POST", headers, body: JSON.stringify({ url }) });
+  setTimeout(() => $("fillPick").textContent = "Fill it", 4000);
+};
+$("autoSubmit").onchange = (e) => {
+  if (e.target.checked && !confirm("HomeGrok will click Submit by itself, but only when every field is verified, nothing was guessed, and no CAPTCHA appears. Turn on?")) { e.target.checked = false; return; }
+  fetch("/api/settings", { method: "POST", headers, body: JSON.stringify({ auto_submit: e.target.checked }) });
+};
+$("autoApply").onchange = (e) => fetch("/api/settings", { method: "POST", headers, body: JSON.stringify({ auto_apply: e.target.checked }) });
+$("applyEmail").oninput = () => { $("applyEmail").dataset.dirty = "1"; };
+$("saveEmail").onclick = async () => {
+  const r = await fetch("/api/settings", { method: "POST", headers, body: JSON.stringify({ email: $("applyEmail").value }) });
+  $("saveEmail").textContent = r.ok ? "Saved" : (await r.json()).error;
+  delete $("applyEmail").dataset.dirty; setTimeout(() => $("saveEmail").textContent = "Save email", 2500);
+};
+$("botWhen").onchange = () => { $("botTime").hidden = $("botWhen").value !== "daily"; };
+$("botAdd").onclick = async () => {
+  const title = $("botName").value.trim(), goal = $("botGoal").value.trim();
+  if (!title || !goal) return;
+  const r = await fetch("/api/bots", { method: "POST", headers, body: JSON.stringify({ title, goal, when: $("botWhen").value, time: $("botTime").value }) });
+  if (r.ok) { $("botName").value = ""; $("botGoal").value = ""; $("botAdd").closest("details").open = false; }
+};
+loadHistory();
+connect();
+</script>
+</body>
+</html>

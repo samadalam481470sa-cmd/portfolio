@@ -1,0 +1,4 @@
+#!/bin/sh
+# HomeGrok launcher: runs the CLI inside the project's virtual environment.
+DIR="$(cd "$(dirname "$0")" && pwd)"
+PYTHONPATH="$DIR${PYTHONPATH:+:$PYTHONPATH}" exec "$DIR/.venv/bin/python" -m homegrok "$@"
