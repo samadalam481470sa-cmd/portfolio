@@ -13,6 +13,8 @@ Projects by Samad Alam, UT Dallas, B.S. Information Technology Systems, graduati
 | Resume-Fit Autofill Assistant | Chrome extension that fills application fields from a resume you provide and scores keyword overlap with the posting. | JavaScript, Manifest V3 | [job-application-chrome-extension](job-application-chrome-extension/) |
 | Stock news sentiment | Turns news into per-ticker sentiment signals. Research tool, not trading advice. | Python, SQLite, pandas, VADER, optional FinBERT | [stock-sentiment](stock-sentiment/) |
 | Wholesale Hub | Finds products that sell for more on a marketplace than they cost at a wholesale store, and shows the links and buying steps. | Python, FastAPI, SQLite | [wholesale-hub](wholesale-hub/) |
+| EstateIQ | Collects listings, market indicators, and migration/growth signals, then scores properties for investment focus. | Python, SQLite, HTML/CSS/JS | [estateiq](estateiq/) |
+| Curb Connect | Contractor/subcontractor project tracker for curb and site concrete work. | React 19, TypeScript, Vite | [curb-connect](curb-connect/) |
 
 HomeGrok fully runs an AI trainer on your own GPU — you can teach it anything.
 
@@ -22,10 +24,10 @@ Each folder has its own README with how to run that project.
 
 ## Tech stack
 
-- **TypeScript / React:** Newport Acquisition CRM (Vite, Tailwind CSS, React Router, Recharts, Zod, Express, `better-sqlite3`).
+- **TypeScript / React:** Newport Acquisition CRM (Vite, Tailwind CSS, React Router, Recharts, Zod, Express, `better-sqlite3`). Curb Connect (Vite, browser local storage).
 - **Browser:** Resume-Fit Autofill Assistant, Manifest V3, no framework.
 - **Node.js:** Job Finder and its multi-user web service use the Node standard library only. The CRM API uses Express.
-- **Python:** HomeGrok (PyTorch, NumPy, plus PDF/Word readers and Playwright for the application filler), Market Agent Connector (FastAPI, MCP, httpx, Pydantic), stock news sentiment (SQLite, pandas, VADER, optional FinBERT and Streamlit), Wholesale Hub (FastAPI, SQLite).
+- **Python:** HomeGrok (PyTorch, NumPy, plus PDF/Word readers and Playwright for the application filler), Market Agent Connector (FastAPI, MCP, httpx, Pydantic), stock news sentiment (SQLite, pandas, VADER, optional FinBERT and Streamlit), Wholesale Hub (FastAPI, SQLite), EstateIQ (SQLite, standard library only, plus a static website).
 
 ## About
 
