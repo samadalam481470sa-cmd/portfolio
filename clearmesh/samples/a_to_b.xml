@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pacs.008.001.08">
+  <FIToFICstmrCdtTrf>
+    <GrpHdr><MsgId>MSG-DEMO-1</MsgId></GrpHdr>
+    <CdtTrfTxInf>
+      <PmtId>
+        <EndToEndId>E2E-A-TO-B-1</EndToEndId>
+        <UETR>550e8400-e29b-41d4-a716-446655440000</UETR>
+      </PmtId>
+      <IntrBkSttlmAmt Ccy="XTS">1250.00</IntrBkSttlmAmt>
+      <DbtrBank>BANKA</DbtrBank>
+      <CdtrBank>BANKB</CdtrBank>
+      <DbtrNm>Alice Example</DbtrNm>
+      <CdtrNm>Bob Example</CdtrNm>
+      <DbtrAcct>ACCT-A-001</DbtrAcct>
+      <CdtrAcct>ACCT-B-001</CdtrAcct>
+    </CdtTrfTxInf>
+  </FIToFICstmrCdtTrf>
+</Document>

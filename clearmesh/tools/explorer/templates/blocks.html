@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Blocks — Clearmesh</title>
+  <style>
+    body { font-family: "IBM Plex Sans", sans-serif; background:#0f1c18; color:#e8f5ef; padding:2rem; }
+    a { color:#3dbe8c; }
+    table { border-collapse: collapse; width:100%; }
+    th, td { text-align:left; padding:.5rem; border-bottom:1px solid #2a4a3d; }
+  </style>
+</head>
+<body>
+  <p><a href="/">← Clearmesh</a></p>
+  <h1>Blocks</h1>
+  <table>
+    <tr><th>Height</th><th>Round</th><th>Txs</th><th>Commits</th><th>State root</th></tr>
+    {% for b in blocks %}
+    <tr>
+      <td>{{ b.height }}</td>
+      <td>{{ b.round }}</td>
+      <td>{{ b.tx_ids|length }}</td>
+      <td>{{ b.commit_sigs }}</td>
+      <td><code>{{ b.state_root[:20] }}…</code></td>
+    </tr>
+    {% endfor %}
+  </table>
+</body>
+</html>
