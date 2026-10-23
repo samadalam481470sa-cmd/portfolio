@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Clearmesh Explorer</title>
+  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+  <style>
+    :root { --bg:#0f1c18; --fg:#e8f5ef; --accent:#3dbe8c; --muted:#8aa89a; }
+    body { margin:0; font-family: "IBM Plex Sans", "Segoe UI", sans-serif; background:
+      radial-gradient(1200px 600px at 10% -10%, #1a3d32, transparent),
+      linear-gradient(160deg, #0f1c18, #132820 50%, #0c1613); color:var(--fg); min-height:100vh; }
+    header { padding:2rem 2.5rem 1rem; }
+    h1 { font-family: "IBM Plex Serif", Georgia, serif; font-weight:600; letter-spacing:-0.02em; margin:0; font-size:2.4rem; }
+    .sub { color:var(--muted); margin-top:.4rem; }
+    main { padding:1rem 2.5rem 3rem; display:grid; gap:1.5rem; }
+    section { border-top:1px solid #2a4a3d; padding-top:1rem; }
+    .ok { color:var(--accent); }
+    a { color:var(--accent); }
+    code { background:#1a2e26; padding:.1rem .35rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Clearmesh</h1>
+    <p class="sub">Synthetic interbank settlement explorer — not a regulated system.</p>
+  </header>
+  <main>
+    <section>
+      <h2>Network</h2>
+      <p>Height <code>{{ status.height }}</code> · chain <code>{{ status.chain_id }}</code> · mempool {{ status.mempool }}</p>
+    </section>
+    <section>
+      <h2>Latest block</h2>
+      {% if latest %}
+      <p>h={{ latest.height }} txs={{ latest.tx_ids|length }} commits={{ latest.commit_sigs }}
+         state=<code>{{ latest.state_root[:16] }}…</code></p>
+      {% else %}<p>No blocks yet.</p>{% endif %}
+      <p><a href="/blocks">Blocks →</a></p>
+    </section>
+    <section>
+      <h2>Invariants</h2>
+      <p class="{% if inv.ok %}ok{% endif %}">{% if inv.ok %}SUPPLY OK{% else %}BREAK {{ inv.errors }}{% endif %}</p>
+    </section>
+  </main>
+</body>
+</html>
