@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EstateIQ | Real Estate Intelligence</title>
+  <meta name="description" content="Find, score, and track real estate investment opportunities before they become obvious.">
+  <link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+  <header class="hero">
+    <nav class="nav" aria-label="Primary navigation">
+      <a class="brand" href="/">
+        <span class="brand-mark">EIQ</span>
+        <span>EstateIQ</span>
+      </a>
+      <div class="nav-links">
+        <a href="#opportunities">Opportunities</a>
+        <a href="#market-map">Market map</a>
+        <a href="#intelligence">Intelligence</a>
+      </div>
+    </nav>
+
+    <section class="hero-grid">
+      <div class="hero-copy">
+        <p class="eyebrow">Real estate intelligence platform</p>
+        <h1>Find, score, and track investment opportunities before the market catches up.</h1>
+        <p class="hero-subtitle">
+          EstateIQ combines listings, market growth signals, migration indicators, public records,
+          and public business contacts into ranked investor recommendations.
+        </p>
+        <div class="hero-actions">
+          <a class="button button-primary" href="#opportunities">View ranked deals</a>
+          <a class="button button-secondary" href="opportunities">Open API data</a>
+        </div>
+      </div>
+
+      <aside class="hero-card" aria-label="Top opportunity preview">
+        <p class="card-label">Top ranked opportunity</p>
+        <div id="top-opportunity">
+          <div class="skeleton skeleton-title"></div>
+          <div class="skeleton"></div>
+          <div class="skeleton skeleton-short"></div>
+        </div>
+      </aside>
+    </section>
+  </header>
+
+  <main>
+    <section class="metrics" aria-label="Platform metrics">
+      <article class="metric-card">
+        <span class="metric-value" id="metric-properties">--</span>
+        <span class="metric-label">Properties tracked</span>
+      </article>
+      <article class="metric-card">
+        <span class="metric-value" id="metric-markets">--</span>
+        <span class="metric-label">Markets analyzed</span>
+      </article>
+      <article class="metric-card">
+        <span class="metric-value" id="metric-contacts">--</span>
+        <span class="metric-label">Public contacts</span>
+      </article>
+      <article class="metric-card">
+        <span class="metric-value" id="metric-score">--</span>
+        <span class="metric-label">Best score</span>
+      </article>
+    </section>
+
+    <section id="opportunities" class="section">
+      <div class="section-heading">
+        <p class="eyebrow">Deal ranking</p>
+        <h2>Investment opportunities ranked by cash flow, value, demand, and market strength.</h2>
+      </div>
+      <div class="toolbar" aria-label="Opportunity filters">
+        <label>
+          Filter by recommendation
+          <select id="recommendation-filter">
+            <option value="all">All recommendations</option>
+            <option value="Priority target">Priority target</option>
+            <option value="Strong watchlist">Strong watchlist</option>
+            <option value="Needs underwriting">Needs underwriting</option>
+            <option value="Monitor only">Monitor only</option>
+          </select>
+        </label>
+      </div>
+      <div id="opportunity-list" class="opportunity-list" aria-live="polite"></div>
+    </section>
+
+    <section id="market-map" class="section map-section">
+      <div class="section-heading">
+        <p class="eyebrow">Opportunity map</p>
+        <h2>Interactive market view with score-weighted property pins.</h2>
+      </div>
+      <div class="map-shell">
+        <div id="map-canvas" class="map-canvas" aria-label="Opportunity map"></div>
+        <aside id="map-details" class="map-details">
+          <h3>Select an opportunity</h3>
+          <p>Click any score pin to inspect price, market signal, and recommendation details.</p>
+        </aside>
+      </div>
+    </section>
+
+    <section id="intelligence" class="section intelligence-grid">
+      <article>
+        <p class="eyebrow">Data collection</p>
+        <h2>Multiple sources, one normalized opportunity model.</h2>
+        <p>
+          EstateIQ is built to ingest licensed MLS feeds, broker listings, auction data,
+          foreclosure records, builder inventory, public property records, and market indicators.
+        </p>
+      </article>
+      <article class="feature-list">
+        <h3>What investors get</h3>
+        <ul>
+          <li>Ranked opportunities and recommendation tiers</li>
+          <li>Market strength from population, jobs, rents, permits, and business growth</li>
+          <li>Public listing, broker, builder, auction, and records contacts</li>
+          <li>AI-style investment reports with positives, risks, and next steps</li>
+        </ul>
+      </article>
+    </section>
+  </main>
+
+  <dialog id="report-dialog">
+    <div class="dialog-header">
+      <h2 id="report-title">Investment report</h2>
+      <button id="close-report" class="icon-button" aria-label="Close report">x</button>
+    </div>
+    <div id="report-body" class="report-body"></div>
+  </dialog>
+
+  <footer class="footer">
+    <span>EstateIQ intelligence demo</span>
+    <a href="health">System health</a>
+  </footer>
+
+  <script src="assets/demo-data.js"></script>
+  <script src="assets/app.js" defer></script>
+</body>
+</html>
