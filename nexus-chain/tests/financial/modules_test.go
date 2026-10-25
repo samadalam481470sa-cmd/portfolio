@@ -21,7 +21,7 @@ func TestHappyPathSettlement(t *testing.T) {
 	kp, err := crypto.Generate()
 	require.NoError(t, err)
 	admin := kp.Address()
-	require.NoError(t, a.BootstrapGenesis(admin))
+	require.NoError(t, a.BootstrapGenesis(admin, 0))
 
 	require.NoError(t, a.Deliver(func(ctx *runtime.Context) error {
 		require.NoError(t, a.Assets.Register(ctx, admin, assettypes.Asset{
@@ -61,7 +61,7 @@ func TestBadAttestationRejected(t *testing.T) {
 	a := app.New()
 	kp, _ := crypto.Generate()
 	admin := kp.Address()
-	require.NoError(t, a.BootstrapGenesis(admin))
+	require.NoError(t, a.BootstrapGenesis(admin, 0))
 	err := a.Deliver(func(ctx *runtime.Context) error {
 		return a.Attest.Anchor(ctx, atttypes.Attestation{
 			ID: "x", SubjectRef: "s", SchemaID: "sch", PayloadHash: "abcd",
@@ -76,7 +76,7 @@ func TestStaleOracleBlocksSettlement(t *testing.T) {
 	a := app.New()
 	kp, _ := crypto.Generate()
 	admin := kp.Address()
-	require.NoError(t, a.BootstrapGenesis(admin))
+	require.NoError(t, a.BootstrapGenesis(admin, 0))
 	require.NoError(t, a.Deliver(func(ctx *runtime.Context) error {
 		require.NoError(t, a.Settle.Mint(ctx, admin, admin, types.NativeDenom, 10))
 		return a.Oracle.Submit(ctx, admin, oracletypes.Report{
@@ -99,7 +99,7 @@ func TestProtocolGuardPause(t *testing.T) {
 	a := app.New()
 	kp, _ := crypto.Generate()
 	admin := kp.Address()
-	require.NoError(t, a.BootstrapGenesis(admin))
+	require.NoError(t, a.BootstrapGenesis(admin, 0))
 	require.NoError(t, a.Deliver(func(ctx *runtime.Context) error {
 		return a.Guard.SetPaused(ctx, admin, "settlement", true)
 	}))

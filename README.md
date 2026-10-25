@@ -15,7 +15,7 @@ Projects by Samad Alam, UT Dallas, B.S. Information Technology Systems, graduati
 | Wholesale Hub | Finds products that sell for more on a marketplace than they cost at a wholesale store, and shows the links and buying steps. | Python, FastAPI, SQLite | [wholesale-hub](wholesale-hub/) |
 | EstateIQ | Collects listings, market indicators, and migration/growth signals, then scores properties for investment focus. | Python, SQLite, HTML/CSS/JS | [estateiq](estateiq/) |
 | Curb Connect | Contractor/subcontractor project tracker for curb and site concrete work. | React 19, TypeScript, Vite | [curb-connect](curb-connect/) |
-| NEXUS Chain | Enterprise L1 framework on Cosmos SDK/CometBFT ideas: validators, modules, NXN, attestations, oracle, settlement, APIs, ops. | Go, Cosmos-style modules, Docker | [nexus-chain](nexus-chain/) |
+| NEXUS Chain | Live public-testnet crypto ledger with native token **NXN** (wallets, transfers, blocks, faucet, explorer) + enterprise modules. | Go, Cosmos-style modules, Docker | [nexus-chain](nexus-chain/) |
 
 HomeGrok fully runs an AI trainer on your own GPU — you can teach it anything.
 

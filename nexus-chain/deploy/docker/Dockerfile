@@ -8,4 +8,4 @@ FROM debian:bookworm-slim
 COPY --from=build /nexusd /usr/local/bin/nexusd
 COPY --from=build /nexus-gateway /usr/local/bin/nexus-gateway
 EXPOSE 26657 8080
-CMD ["nexusd", "solo", "--home", "/data"]
+CMD ["nexusd", "start", "--home", "/data", "--faucet"]

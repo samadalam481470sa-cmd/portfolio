@@ -1,52 +1,82 @@
-# NEXUS Chain
+# NEXUS Chain — Live NXN Crypto Ledger
 
-**Enterprise Blockchain Master Framework** — an independent Layer-1 design built around the **Cosmos SDK + CometBFT** foundation, with proprietary NEXUS financial modules, APIs, indexer, connectors, and autonomous ops controls.
+**Public-testnet cryptocurrency + blockchain ledger** built as an independent L1 framework (Cosmos SDK / CometBFT–oriented architecture) with a **live native token: NXN**.
 
-> Public portfolio / testnet scaffold. Not a regulated financial institution. Connectors require separate authorization for production. Security depends on your validators, audits, and operations.
-
-## Foundations (upstream)
-
-| Layer | Choice |
+| | |
 |---|---|
-| Application framework | Cosmos SDK (pin before production) |
-| Consensus / P2P | CometBFT |
-| Optional contracts | Cosmos EVM (gated off by default) |
-| Optional interoperability | IBC-Go |
+| Ticker | **NXN** |
+| Base unit | `unxn` (6 decimals) |
+| Genesis supply | 100,000,000 NXN |
+| Chain ID | `nexus-1` |
 
-See [docs/BLUEPRINT.md](docs/BLUEPRINT.md) for the full engineering blueprint (architecture, modules, build order, acceptance criteria).
+> **Honest scope:** This is runnable live ledger software for a **public testnet crypto**. It is **not** a stock, not legal advice, and not an exchange listing. Market value and listings are outside the code.
 
-## What’s in this repo
-
-- **Custom modules:** `assetregistry`, `attestation`, `oracle`, `permissions`, `settlement`, `protocolguard`
-- **`nexusd solo`:** local deterministic runtime for module/API development
-- **Indexer SQL + gateway + connector interfaces + ops runbooks**
-- **Docker localnet** skeleton for multi-node bring-up
-- **Unit tests** for financial invariants
-
-Production multi-validator CometBFT networking and full SDK store wiring follow the blueprint’s build order (§8) against audited pins.
-
-## Quickstart
+## Quickstart — run the live ledger
 
 ```bash
 cd nexus-chain
 go test ./...
-go run ./chain/cmd/nexusd solo --home /tmp/nexus-home
-# another terminal
-go run ./gateway/cmd/nexus-gateway --home /tmp/nexus-home --listen :8080
-curl -s localhost:8080/v1/status | jq
+go run ./chain/cmd/nexusd start --home /tmp/nexus-live --faucet
 ```
 
-Docker:
+Open the explorer: [http://127.0.0.1:26657/](http://127.0.0.1:26657/)
+
+```bash
+# new wallet
+go run ./chain/cmd/nexusd wallet create --out alice.json
+
+# claim faucet NXN (from explorer or):
+curl -s -X POST http://127.0.0.1:26657/v1/faucet \
+  -H 'content-type: application/json' \
+  -d "{\"address\":\"$(jq -r .address alice.json)\"}"
+
+# after ~2s (next block), check balance
+go run ./chain/cmd/nexusd balance --address "$(jq -r .address alice.json)"
+
+# send NXN (amount in NXN)
+go run ./chain/cmd/nexusd wallet create --out bob.json
+# fund alice first via faucet, then:
+go run ./chain/cmd/nexusd tx send --from alice.json --to "$(jq -r .address bob.json)" --amount 1.5
+```
+
+## What is fully implemented
+
+- **Live crypto token NXN** with fixed genesis supply and treasury
+- **Wallets** (Ed25519) — create, persist, sign
+- **Signed transfers** with sequence/nonce replay protection
+- **Persistent ledger** (`state/ledger.json` + per-height blocks)
+- **Automatic block production** (~2s)
+- **HTTP RPC** + **HTMX-style explorer** (create wallet, faucet, balances)
+- **Testnet faucet** (rate-limited)
+- Enterprise modules still present: attestations, oracle, settlement, protocolguard
+- Docker compose, CI, blueprint, tokenomics
+
+## API
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `/v1/status` | height, app hash, supply |
+| GET | `/v1/supply` | NXN supply |
+| GET | `/v1/balance?address=` | balance + sequence |
+| POST | `/v1/tx/send` | submit signed MsgSend |
+| GET | `/v1/tx/{hash}` | receipt |
+| GET | `/v1/blocks/latest` | latest block |
+| POST | `/v1/faucet` | claim testnet NXN |
+| POST | `/v1/wallet/create` | generate wallet |
+| GET | `/` | live explorer |
+
+## Docker
 
 ```bash
 docker compose -f deploy/docker/docker-compose.yml up --build
 ```
 
-## Native asset
+## Architecture docs
 
-- Display: **NXN**
-- Base denom: `unxn` (1 NXN = 1_000_000 `unxn`)
+- [docs/TOKENOMICS.md](docs/TOKENOMICS.md) — NXN economics
+- [docs/BLUEPRINT.md](docs/BLUEPRINT.md) — master engineering blueprint
+- [docs/threat_model.md](docs/threat_model.md)
 
 ## License
 
-Apache-2.0 for NEXUS custom code in this tree. Upstream Cosmos/CometBFT/EVM/IBC remain under their licenses and must be pinned and reviewed before production use.
+Apache-2.0 for NEXUS custom code. Upstream Cosmos/CometBFT/EVM/IBC remain under their licenses when you pin them for production validator networking.

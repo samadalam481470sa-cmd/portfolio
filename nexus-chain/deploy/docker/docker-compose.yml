@@ -3,7 +3,7 @@ services:
     build:
       context: ../..
       dockerfile: deploy/docker/Dockerfile
-    command: ["nexusd", "solo", "--home", "/data"]
+    command: ["nexusd", "start", "--home", "/data", "--faucet", "--listen", ":26657"]
     ports:
       - "26657:26657"
     volumes:
