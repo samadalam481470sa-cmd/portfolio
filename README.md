@@ -2,6 +2,8 @@
 
 Projects by Samad Alam, UT Dallas, B.S. Information Technology Systems, graduating December 2026.
 
+Updated: October 25, 2026.
+
 ## Projects
 
 | Project | What it does | Stack | Code |
