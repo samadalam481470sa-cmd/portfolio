@@ -1,0 +1,25 @@
+name: nexus-chain-ci
+on:
+  push:
+    paths:
+      - "nexus-chain/**"
+      - ".github/workflows/nexus-chain-ci.yml"
+  pull_request:
+    paths:
+      - "nexus-chain/**"
+      - ".github/workflows/nexus-chain-ci.yml"
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: nexus-chain
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+      - name: Test
+        run: go test ./...
+      - name: Build
+        run: go build -o /tmp/nexusd ./chain/cmd/nexusd && go build -o /tmp/nexus-gateway ./gateway/cmd/nexus-gateway

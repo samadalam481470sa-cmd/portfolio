@@ -1,0 +1,21 @@
+services:
+  nexus-solo:
+    build:
+      context: ../..
+      dockerfile: deploy/docker/Dockerfile
+    command: ["nexusd", "solo", "--home", "/data"]
+    ports:
+      - "26657:26657"
+    volumes:
+      - nexus-data:/data
+  nexus-gateway:
+    build:
+      context: ../..
+      dockerfile: deploy/docker/Dockerfile
+    command: ["nexus-gateway", "--rpc", "http://nexus-solo:26657", "--listen", ":8080"]
+    ports:
+      - "8080:8080"
+    depends_on:
+      - nexus-solo
+volumes:
+  nexus-data:
