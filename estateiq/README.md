@@ -21,13 +21,13 @@ This repository contains a runnable first implementation of the product describe
 
 ### Open from a phone or any browser after deployment
 
-This project includes a GitLab Pages configuration for the static website. After the branch is merged and the Pages pipeline finishes, the site should be available at:
+This project includes a GitLab Pages configuration for the static website. After the branch is merged and the Pages pipeline finishes, the site is published at a GitLab Pages URL shaped like:
 
 ```text
-https://samad.alam481470sa-group.gitlab.io/samad.alam481470sa-project/
+https://example.gitlab.io/example-project/
 ```
 
-Use this public Pages URL on iPhone/Safari. Do not use `localhost` on your phone unless the server is running on that same phone.
+Use your GitLab Pages URL on iPhone/Safari. Do not use `localhost` on your phone unless the server is running on that same phone.
 
 ### Open immediately without a server
 
