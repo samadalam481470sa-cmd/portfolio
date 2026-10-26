@@ -1,0 +1,5 @@
+nodes = 4
+delay_ms = 20
+drop_rate = 0.05
+byzantine = "HONEST"
+partitions = [[0, 1], [2, 3]]
