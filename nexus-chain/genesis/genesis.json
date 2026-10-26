@@ -1,0 +1,10 @@
+{
+  "chain_id": "nexus-1",
+  "native_denom": "unxn",
+  "nxn_factor": 1000000,
+  "evm_enabled": false,
+  "ibc_enabled": false,
+  "max_validators": 100,
+  "initial_validator_target": 7,
+  "note": "Template genesis. Production genesis is produced by Cosmos SDK init + gentx ceremony."
+}
